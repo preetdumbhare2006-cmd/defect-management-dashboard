@@ -1,18 +1,55 @@
-export default function FilterBar() {
+import { useState, useRef, useEffect } from "react";
+export default function FilterBar({
+  showAnalytics,
+  setShowAnalytics,
+  showFilters,
+  setShowFilters,
+}) {
+  
+  const filterRef = useRef(null);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setShowFilters(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   return (
-    <div className="border-t border-gray-100 px-8 py-5 flex justify-between items-center">
+    <div className="border-t border-gray-100 px-8 py-3 flex justify-between items-center">
       <div className="flex gap-4">
-        <button className="px-6 py-3 rounded-full border border-indigo-400 text-indigo-600 font-medium">
+        <button
+          onClick={() => setShowAnalytics(!showAnalytics)}
+          className={`
+    px-6 py-3 rounded-full font-medium transition
+    ${
+      showAnalytics
+        ? "border border-indigo-500 bg-indigo-50 text-indigo-600"
+        : "border border-gray-200 bg-white"
+    }
+  `}
+        >
           📊 Visual Analytics
         </button>
 
-        <button className="px-6 py-3 rounded-full border border-gray-200 bg-white">
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className={`
+    px-6 py-3 rounded-full font-medium transition
+    ${
+      showFilters
+        ? "border border-indigo-500 bg-indigo-50 text-indigo-600"
+        : "border border-gray-200 bg-white"
+    }
+  `}
+        >
           🔍 Advanced Filters
         </button>
-      </div>
-
-      <div className="px-6 py-3 rounded-full border border-gray-200 text-gray-500 tracking-wider text-sm">
-        NO FILTERS APPLIED
       </div>
     </div>
   );

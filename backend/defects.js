@@ -1,4 +1,4 @@
-export const defects = [
+ const defects = [
   {
     id: 1753,
     title: "new tests",
@@ -169,3 +169,4 @@ export const defects = [
     defectRelease: "InfoQA Release 2026.05",
   },
 ];
+module.exports=defects;

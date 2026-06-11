@@ -1,22 +1,46 @@
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis } from "recharts";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
-const data = [
-  { name: "Shweta Tarate", value: 14 },
-  { name: "Not Assigned", value: 11 },
-  { name: "Amey Bhosle", value: 8 },
-  { name: "Pankaj Patle", value: 5 },
-  { name: "Dipesh Bhattarai", value: 4 },
-];
+
 
 export default function AssignedToChart() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/charts/assigned-to")
+      .then((res) => {
+        setData(res.data);
+      })
+      .catch(console.error);
+  }, []);
+
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ResponsiveContainer width="100%" height={320}>
       <BarChart layout="vertical" data={data}>
         <XAxis type="number" />
 
-        <YAxis type="category" dataKey="name" width={100} />
+        <YAxis
+          type="category"
+          dataKey="name"
+          width={140}
+        />
 
-        <Bar dataKey="value" fill="#98e3bf" radius={[0, 8, 8, 0]} />
+        <Tooltip />
+
+        <Bar
+          dataKey="value"
+          fill="#98e3bf"
+          radius={[0, 8, 8, 0]}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

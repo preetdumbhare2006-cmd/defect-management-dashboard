@@ -1,23 +1,33 @@
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
-const data = [
-  { name: "QA", value: 25 },
-  { name: "Info Origin", value: 14 },
-  { name: "PROD", value: 10 },
-  { name: "UAT", value: 8 },
-];
+
 
 const colors = ["#c5ceff", "#9ce0be", "#a8c7ef", "#f5df82"];
 
 export default function EnvironmentChart() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/charts/environment")
+      .then((res) => {
+        setData(res.data);
+      })
+      .catch(console.error);
+  }, []);
+
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ResponsiveContainer width="100%" height={320}>
       <PieChart>
-        <Pie data={data} dataKey="value" outerRadius={90}>
+        <Pie data={data} dataKey="value" nameKey="name" outerRadius={90}>
           {data.map((_, i) => (
-            <Cell key={i} fill={colors[i]} />
+            <Cell key={i} fill={colors[i % colors.length]} />
           ))}
         </Pie>
+
+        <Tooltip />
       </PieChart>
     </ResponsiveContainer>
   );

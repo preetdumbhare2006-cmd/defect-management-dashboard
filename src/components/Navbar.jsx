@@ -2,14 +2,47 @@ import { FiMenu, FiBell, FiMail, FiSearch } from "react-icons/fi";
 
 export default function Navbar({ search, setSearch, darkMode, setDarkMode }) {
   return (
-    <div className="h-16 bg-white border-b flex items-center justify-between px-8">
+    <div
+      className="
+  h-16
+  bg-white/90
+  backdrop-blur-md
+  border-b
+  border-slate-200
+  flex
+  items-center
+  justify-between
+  px-8
+  sticky
+  top-0
+  z-50
+"
+    >
       <div className="flex items-center gap-4">
-        <FiMenu size={22} />
-        <h2 className="font-semibold text-lg">Report</h2>
+        <button
+          className="
+    w-10
+    h-10
+    rounded-xl
+    hover:bg-slate-100
+    flex
+    items-center
+    justify-center
+    transition
+  "
+        >
+          <FiMenu size={22} />
+        </button>
+
+        <div>
+          <h2 className="font-bold text-lg text-slate-900">Defect Report</h2>
+
+          <p className="text-xs text-slate-400">Analytics Dashboard</p>
+        </div>
       </div>
 
       <div className="relative">
-        <FiSearch className="absolute left-4 top-4 text-gray-400" />
+        <FiSearch className="absolute left-4 top-3.5 text-slate-400" />
 
         <input
           type="text"
@@ -17,20 +50,59 @@ export default function Navbar({ search, setSearch, darkMode, setDarkMode }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="
-          w-[420px]
-          pl-11
-          pr-4
-          py-3
-          rounded-full
-          border
-          outline-none
-          "
+w-[500px]
+h-12
+pl-11
+pr-4
+rounded-2xl
+border
+border-slate-200
+bg-slate-50
+outline-none
+focus:ring-4
+focus:ring-indigo-100
+focus:border-indigo-400
+transition
+"
         />
       </div>
 
       <div className="flex items-center gap-5">
-        <FiMail size={20} />
-        <FiBell size={20} />
+        <div
+          className="
+  w-10
+  h-10
+  rounded-xl
+  border
+  border-slate-200
+  bg-slate-50
+  flex
+  items-center
+  justify-center
+  hover:bg-indigo-50
+  transition
+"
+        >
+          <FiMail size={18} />
+        </div>
+
+        <div
+          className="
+  w-10
+  h-10
+  rounded-xl
+  border
+  border-slate-200
+  bg-slate-50
+  flex
+  items-center
+  justify-center
+  hover:bg-indigo-50
+  transition
+"
+        >
+          <FiBell size={18} />
+        </div>
 
         <div className="flex items-center gap-3">
           <div className="text-right">
@@ -39,19 +111,15 @@ export default function Navbar({ search, setSearch, darkMode, setDarkMode }) {
             <div className="text-xs text-gray-500">Administrator</div>
           </div>
 
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="border rounded-xl px-3 py-2"
-          >
-            {darkMode ? "☀️" : "🌙"}
-          </button>
-
           <div
             className="
     w-11
     h-11
-    rounded-full
-    bg-indigo-600
+    rounded-2xl
+bg-gradient-to-r
+from-indigo-500
+to-purple-500
+shadow-lg
     text-white
     flex
     items-center
