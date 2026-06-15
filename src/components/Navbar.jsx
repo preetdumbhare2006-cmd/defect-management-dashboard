@@ -4,18 +4,23 @@ export default function Navbar({ search, setSearch, darkMode, setDarkMode }) {
   return (
     <div
       className="
-  h-16
-  bg-white/90
-  backdrop-blur-md
-  border-b
-  border-slate-200
-  flex
-  items-center
-  justify-between
-  px-8
-  sticky
-  top-0
-  z-50
+bg-white/90
+backdrop-blur-md
+border-b
+border-slate-200
+flex
+flex-col
+lg:flex-row
+gap-4
+lg:gap-0
+items-center
+justify-between
+px-4
+md:px-8
+py-3
+sticky
+top-0
+z-50
 "
     >
       <div className="flex items-center gap-4">
@@ -40,8 +45,7 @@ export default function Navbar({ search, setSearch, darkMode, setDarkMode }) {
           <p className="text-xs text-slate-400">Analytics Dashboard</p>
         </div>
       </div>
-
-      <div className="relative">
+      <div className="relative w-full md:w-auto">
         <FiSearch className="absolute left-4 top-3.5 text-slate-400" />
 
         <input
@@ -50,7 +54,8 @@ export default function Navbar({ search, setSearch, darkMode, setDarkMode }) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="
-w-[500px]
+w-full
+md:w-[500px]
 h-12
 pl-11
 pr-4
@@ -67,7 +72,17 @@ transition
         />
       </div>
 
-      <div className="flex items-center gap-5">
+      <div
+        className="
+flex
+items-center
+gap-3
+md:gap-5
+w-full
+lg:w-auto
+justify-center
+"
+      >
         <div
           className="
   w-10

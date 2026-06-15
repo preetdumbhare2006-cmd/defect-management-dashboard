@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { Pencil, MoreHorizontal, Funnel } from "lucide-react";
+import { Pencil, Trash2, Funnel } from "lucide-react";
 
 export default function DefectTable({
   data,
@@ -17,6 +17,9 @@ export default function DefectTable({
   setEnvironmentFilter,
   setTagFilter,
   defectOwnerFilter,
+
+  onEdit,
+  onDelete,
 }) {
   const [sortAsc, setSortAsc] = useState(true);
 
@@ -25,6 +28,7 @@ export default function DefectTable({
   const [selectedDefect, setSelectedDefect] = useState(null);
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [showRowsDropdown, setShowRowsDropdown] = useState(false);
 
   const [idFilter, setIdFilter] = useState("");
 
@@ -207,7 +211,7 @@ export default function DefectTable({
   const endRecord = Math.min(lastIndex, filteredDefects.length);
 
   return (
-    <div className="px-8 pb-8">
+    <div className="px-2 md:px-8 pb-8">
       <div
         className="
     relative
@@ -219,67 +223,68 @@ export default function DefectTable({
     shadow-sm
   "
       >
-        <table className="w-full text-[15px]">
-          <colgroup>
-            <col style={{ width: "70px" }} /> {/* Actions */}
-            <col style={{ width: "80px" }} /> {/* ID */}
-            <col style={{ width: "350px" }} /> {/* Title */}
-            <col style={{ width: "250px" }} /> {/* Assignee */}
-            <col style={{ width: "140px" }} /> {/* Status */}
-            <col style={{ width: "120px" }} /> {/* Stage */}
-            <col style={{ width: "170px" }} /> {/* Environment */}
-            <col style={{ width: "180px" }} /> {/* Severity */}
-            <col style={{ width: "100px" }} /> {/* Tags */}
-            <col style={{ width: "220px" }} /> {/* Release */}
-            <col style={{ width: "240px" }} /> {/* Owner */}
-            <col style={{ width: "150px" }} /> {/* Source */}
-          </colgroup>
-          <thead className="sticky top-0 bg-slate-50 z-10">
-            <tr className="h-14 bg-slate-50 border-b border-slate-200">
-              <th className="w-16">
-                <button
-                  onClick={() => {
-                    if (showColumnFilters) {
-                      setIdFilter("");
-                      setTitleFilter("");
-                      setAssigneeInlineFilter("");
-                      setStatusInlineFilter("");
-                      setStageInlineFilter("");
-                      setEnvironmentInlineFilter("");
-                      setSeverityInlineFilter("");
-                      setTagInlineFilter("");
-                      setSourceInlineFilter("");
-                      setDefectOwnerInlineFilter("");
-                      setDefectReleaseInlineFilter("");
+        <div className="overflow-x-auto">
+          <table className="min-w-[1200px] w-full">
+            <colgroup>
+              <col style={{ width: "70px" }} /> {/* Actions */}
+              <col style={{ width: "80px" }} /> {/* ID */}
+              <col style={{ width: "350px" }} /> {/* Title */}
+              <col style={{ width: "250px" }} /> {/* Assignee */}
+              <col style={{ width: "140px" }} /> {/* Status */}
+              <col style={{ width: "120px" }} /> {/* Stage */}
+              <col style={{ width: "170px" }} /> {/* Environment */}
+              <col style={{ width: "180px" }} /> {/* Severity */}
+              <col style={{ width: "100px" }} /> {/* Tags */}
+              <col style={{ width: "220px" }} /> {/* Release */}
+              <col style={{ width: "240px" }} /> {/* Owner */}
+              <col style={{ width: "150px" }} /> {/* Source */}
+            </colgroup>
+            <thead className="sticky top-0 bg-slate-50 z-10">
+              <tr className="h-14 bg-slate-50 border-b border-slate-200">
+                <th className="w-16">
+                  <button
+                    onClick={() => {
+                      if (showColumnFilters) {
+                        setIdFilter("");
+                        setTitleFilter("");
+                        setAssigneeInlineFilter("");
+                        setStatusInlineFilter("");
+                        setStageInlineFilter("");
+                        setEnvironmentInlineFilter("");
+                        setSeverityInlineFilter("");
+                        setTagInlineFilter("");
+                        setSourceInlineFilter("");
+                        setDefectOwnerInlineFilter("");
+                        setDefectReleaseInlineFilter("");
 
-                      // NEW
-                      setCurrentPage(1);
-                    }
+                        // NEW
+                        setCurrentPage(1);
+                      }
 
-                    setShowColumnFilters(!showColumnFilters);
-                  }}
+                      setShowColumnFilters(!showColumnFilters);
+                    }}
+                  >
+                    <Funnel size={18} />
+                  </button>
+                </th>
+
+                <th
+                  className="text-left cursor-pointer px-2 py-2"
+                  onClick={() => !showColumnFilters && setSortAsc(!sortAsc)}
                 >
-                  <Funnel size={18} />
-                </button>
-              </th>
-
-              <th
-                className="text-left cursor-pointer px-2 py-2"
-                onClick={() => !showColumnFilters && setSortAsc(!sortAsc)}
-              >
-                {showColumnFilters ? (
-                  <div ttitle="Search ID">
-                    <input
-                      placeholder="Search ID"
-                      value={idFilter}
-                      onChange={(e) => setIdFilter(e.target.value)}
-                      onMouseEnter={(e) => {
-                        e.target.placeholder = "Search ID";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.placeholder = "Search...";
-                      }}
-                      className="
+                  {showColumnFilters ? (
+                    <div ttitle="Search ID">
+                      <input
+                        placeholder="Search ID"
+                        value={idFilter}
+                        onChange={(e) => setIdFilter(e.target.value)}
+                        onMouseEnter={(e) => {
+                          e.target.placeholder = "Search ID";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.placeholder = "Search...";
+                        }}
+                        className="
 w-full
 h-11
 px-4
@@ -304,20 +309,53 @@ overflow-hidden
 text-ellipsis
 whitespace-nowrap
 "
+                      />
+                    </div>
+                  ) : (
+                    <>ID {sortAsc ? "↑" : "↓"}</>
+                  )}
+                </th>
+
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
+                  {showColumnFilters ? (
+                    <input
+                      placeholder="Search title"
+                      value={titleFilter}
+                      onChange={(e) => setTitleFilter(e.target.value)}
+                      className="
+w-full
+h-11
+px-4
+bg-white
+border
+border-slate-200
+rounded-2xl
+text-sm
+font-medium
+text-slate-700
+shadow-sm
+hover:border-indigo-300
+focus:border-indigo-500
+focus:ring-2
+focus:ring-indigo-100
+outline-none
+transition-all
+duration-200
+placeholder:text-slate-400
+"
                     />
-                  </div>
-                ) : (
-                  <>ID {sortAsc ? "↑" : "↓"}</>
-                )}
-              </th>
+                  ) : (
+                    "DEFECT TITLE"
+                  )}
+                </th>
 
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
-                {showColumnFilters ? (
-                  <input
-                    placeholder="Search title"
-                    value={titleFilter}
-                    onChange={(e) => setTitleFilter(e.target.value)}
-                    className="
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
+                  {showColumnFilters ? (
+                    <input
+                      placeholder="Search assignee"
+                      value={assigneeInlineFilter}
+                      onChange={(e) => setAssigneeInlineFilter(e.target.value)}
+                      className="
 w-full
 h-11
 px-4
@@ -338,110 +376,77 @@ transition-all
 duration-200
 placeholder:text-slate-400
 "
-                  />
-                ) : (
-                  "DEFECT TITLE"
-                )}
-              </th>
+                    />
+                  ) : (
+                    "ASSIGNEE"
+                  )}
+                </th>
 
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
-                {showColumnFilters ? (
-                  <input
-                    placeholder="Search assignee"
-                    value={assigneeInlineFilter}
-                    onChange={(e) => setAssigneeInlineFilter(e.target.value)}
-                    className="
-w-full
-h-11
-px-4
-bg-white
-border
-border-slate-200
-rounded-2xl
-text-sm
-font-medium
-text-slate-700
-shadow-sm
-hover:border-indigo-300
-focus:border-indigo-500
-focus:ring-2
-focus:ring-indigo-100
-outline-none
-transition-all
-duration-200
-placeholder:text-slate-400
-"
-                  />
-                ) : (
-                  "ASSIGNEE"
-                )}
-              </th>
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
+                  {showColumnFilters ? (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowStatusDropdownInline(!showStatusDropdownInline)
+                        }
+                        className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
+                      >
+                        <span className="flex-1 truncate text-left">
+                          {statusInlineFilter || "Status"}
+                        </span>
 
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
-                {showColumnFilters ? (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowStatusDropdownInline(!showStatusDropdownInline)
-                      }
-                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
-                    >
-                      <span className="flex-1 truncate text-left">
-                        {statusInlineFilter || "Status"}
-                      </span>
+                        <span className="ml-2 text-slate-400 flex-shrink-0">
+                          ▼
+                        </span>
+                      </button>
 
-                      <span className="ml-2 text-slate-400 flex-shrink-0">
-                        ▼
-                      </span>
-                    </button>
+                      {showStatusDropdownInline && (
+                        <div className="absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-visible">
+                          {statusOptions.map((status) => (
+                            <div
+                              key={status}
+                              onClick={() => {
+                                setStatusInlineFilter(status);
+                                setShowStatusDropdownInline(false);
+                              }}
+                              className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                            >
+                              <span>{status}</span>
+                              {statusInlineFilter === status && (
+                                <span className="text-indigo-600 font-bold">
+                                  ✓
+                                </span>
+                              )}
+                            </div>
+                          ))}
 
-                    {showStatusDropdownInline && (
-                      <div className="absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-visible">
-                        {statusOptions.map((status) => (
                           <div
-                            key={status}
                             onClick={() => {
-                              setStatusInlineFilter(status);
+                              setStatusInlineFilter("");
                               setShowStatusDropdownInline(false);
                             }}
-                            className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                            className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
                           >
-                            <span>{status}</span>
-                            {statusInlineFilter === status && (
-                              <span className="text-indigo-600 font-bold">
-                                ✓
-                              </span>
-                            )}
+                            Clear
                           </div>
-                        ))}
-
-                        <div
-                          onClick={() => {
-                            setStatusInlineFilter("");
-                            setShowStatusDropdownInline(false);
-                          }}
-                          className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
-                        >
-                          Clear 
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  "STATUS"
-                )}
-              </th>
+                      )}
+                    </div>
+                  ) : (
+                    "STATUS"
+                  )}
+                </th>
 
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
-                {showColumnFilters ? (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowStageDropdownInline(!showStageDropdownInline)
-                      }
-                      className="
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
+                  {showColumnFilters ? (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowStageDropdownInline(!showStageDropdownInline)
+                        }
+                        className="
           w-full
           h-11
           px-4
@@ -458,65 +463,65 @@ placeholder:text-slate-400
           items-center
           justify-between
         "
-                    >
-                      <span className="flex-1 truncate text-left">
-                        {stageInlineFilter || "Stage"}
-                      </span>
+                      >
+                        <span className="flex-1 truncate text-left">
+                          {stageInlineFilter || "Stage"}
+                        </span>
 
-                      <span className="ml-2 text-slate-400 flex-shrink-0">
-                        ▼
-                      </span>
-                    </button>
+                        <span className="ml-2 text-slate-400 flex-shrink-0">
+                          ▼
+                        </span>
+                      </button>
 
-                    {showStageDropdownInline && (
-                      <div className="absolute z-[9999] mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
-                        {stageOptions.map((stage) => (
+                      {showStageDropdownInline && (
+                        <div className="absolute z-[9999] mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                          {stageOptions.map((stage) => (
+                            <div
+                              key={stage}
+                              onClick={() => {
+                                setStageInlineFilter(stage);
+                                setShowStageDropdownInline(false);
+                              }}
+                              className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer transition"
+                            >
+                              <span>{stage}</span>
+
+                              {stageInlineFilter === stage && (
+                                <span className="text-indigo-600 font-bold">
+                                  ✓
+                                </span>
+                              )}
+                            </div>
+                          ))}
+
                           <div
-                            key={stage}
                             onClick={() => {
-                              setStageInlineFilter(stage);
+                              setStageInlineFilter("");
                               setShowStageDropdownInline(false);
                             }}
-                            className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer transition"
+                            className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
                           >
-                            <span>{stage}</span>
-
-                            {stageInlineFilter === stage && (
-                              <span className="text-indigo-600 font-bold">
-                                ✓
-                              </span>
-                            )}
+                            Clear
                           </div>
-                        ))}
-
-                        <div
-                          onClick={() => {
-                            setStageInlineFilter("");
-                            setShowStageDropdownInline(false);
-                          }}
-                          className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
-                        >
-                          Clear
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  "STAGE"
-                )}
-              </th>
+                      )}
+                    </div>
+                  ) : (
+                    "STAGE"
+                  )}
+                </th>
 
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
-                {showColumnFilters ? (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowEnvironmentDropdownInline(
-                          !showEnvironmentDropdownInline,
-                        )
-                      }
-                      className="
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
+                  {showColumnFilters ? (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowEnvironmentDropdownInline(
+                            !showEnvironmentDropdownInline,
+                          )
+                        }
+                        className="
           w-full
           h-11
           px-4
@@ -534,19 +539,19 @@ placeholder:text-slate-400
           justify-between
           overflow-hidden
         "
-                    >
-                      <span className="flex-1 truncate text-left">
-                        {environmentInlineFilter || "Environment"}
-                      </span>
+                      >
+                        <span className="flex-1 truncate text-left">
+                          {environmentInlineFilter || "Environment"}
+                        </span>
 
-                      <span className="ml-2 text-slate-400 flex-shrink-0">
-                        ▼
-                      </span>
-                    </button>
+                        <span className="ml-2 text-slate-400 flex-shrink-0">
+                          ▼
+                        </span>
+                      </button>
 
-                    {showEnvironmentDropdownInline && (
-                      <div
-                        className="
+                      {showEnvironmentDropdownInline && (
+                        <div
+                          className="
             absolute
             z-50
             mt-2
@@ -558,15 +563,15 @@ placeholder:text-slate-400
             shadow-xl
             overflow-hidden
           "
-                      >
-                        {["QA", "DEV", "BCBSKS PROD"].map((env) => (
-                          <div
-                            key={env}
-                            onClick={() => {
-                              setEnvironmentInlineFilter(env);
-                              setShowEnvironmentDropdownInline(false);
-                            }}
-                            className="
+                        >
+                          {["QA", "DEV", "BCBSKS PROD"].map((env) => (
+                            <div
+                              key={env}
+                              onClick={() => {
+                                setEnvironmentInlineFilter(env);
+                                setShowEnvironmentDropdownInline(false);
+                              }}
+                              className="
                 flex
                 items-center
                 justify-between
@@ -576,23 +581,23 @@ placeholder:text-slate-400
                 cursor-pointer
                 transition
               "
-                          >
-                            <span>{env}</span>
+                            >
+                              <span>{env}</span>
 
-                            {environmentInlineFilter === env && (
-                              <span className="text-indigo-600 font-bold">
-                                ✓
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                              {environmentInlineFilter === env && (
+                                <span className="text-indigo-600 font-bold">
+                                  ✓
+                                </span>
+                              )}
+                            </div>
+                          ))}
 
-                        <div
-                          onClick={() => {
-                            setEnvironmentInlineFilter("");
-                            setShowEnvironmentDropdownInline(false);
-                          }}
-                          className="
+                          <div
+                            onClick={() => {
+                              setEnvironmentInlineFilter("");
+                              setShowEnvironmentDropdownInline(false);
+                            }}
+                            className="
               px-4
               py-3
               border-t
@@ -601,120 +606,120 @@ placeholder:text-slate-400
               hover:bg-red-50
               cursor-pointer
             "
-                        >
-                          Clear 
+                          >
+                            Clear
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  "ENVIRONMENT"
-                )}
-              </th>
+                      )}
+                    </div>
+                  ) : (
+                    "ENVIRONMENT"
+                  )}
+                </th>
 
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
-                {showColumnFilters ? (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowSeverityDropdownInline(
-                          !showSeverityDropdownInline,
-                        )
-                      }
-                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
-                    >
-                      <span className="flex-1 truncate text-left">
-                        {severityInlineFilter || "Severity"}
-                      </span>
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
+                  {showColumnFilters ? (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowSeverityDropdownInline(
+                            !showSeverityDropdownInline,
+                          )
+                        }
+                        className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
+                      >
+                        <span className="flex-1 truncate text-left">
+                          {severityInlineFilter || "Severity"}
+                        </span>
 
-                      <span className="ml-2 text-slate-400 flex-shrink-0">
-                        ▼
-                      </span>
-                    </button>
+                        <span className="ml-2 text-slate-400 flex-shrink-0">
+                          ▼
+                        </span>
+                      </button>
 
-                    {showSeverityDropdownInline && (
-                      <div className="absolute z-[9999] mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
-                        {severityOptions.map((severity) => (
+                      {showSeverityDropdownInline && (
+                        <div className="absolute z-[9999] mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                          {severityOptions.map((severity) => (
+                            <div
+                              key={severity}
+                              onClick={() => {
+                                setSeverityInlineFilter(severity);
+                                setShowSeverityDropdownInline(false);
+                              }}
+                              className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                            >
+                              <span>{severity}</span>
+                              {severityInlineFilter === severity && (
+                                <span className="text-indigo-600 font-bold">
+                                  ✓
+                                </span>
+                              )}
+                            </div>
+                          ))}
+
                           <div
-                            key={severity}
                             onClick={() => {
-                              setSeverityInlineFilter(severity);
+                              setSeverityInlineFilter("");
                               setShowSeverityDropdownInline(false);
                             }}
-                            className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                            className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
                           >
-                            <span>{severity}</span>
-                            {severityInlineFilter === severity && (
-                              <span className="text-indigo-600 font-bold">
-                                ✓
-                              </span>
-                            )}
+                            Clear
                           </div>
-                        ))}
-
-                        <div
-                          onClick={() => {
-                            setSeverityInlineFilter("");
-                            setShowSeverityDropdownInline(false);
-                          }}
-                          className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
-                        >
-                          Clear
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  "SEVERITY"
-                )}
-              </th>
+                      )}
+                    </div>
+                  ) : (
+                    "SEVERITY"
+                  )}
+                </th>
 
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
-                {showColumnFilters ? (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowTagDropdownInline(!showTagDropdownInline)
-                      }
-                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
-                    >
-                      <span className="flex-1 truncate text-left">
-                        {tagInlineFilter || "Tags"}
-                      </span>
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
+                  {showColumnFilters ? (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowTagDropdownInline(!showTagDropdownInline)
+                        }
+                        className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
+                      >
+                        <span className="flex-1 truncate text-left">
+                          {tagInlineFilter || "Tags"}
+                        </span>
 
-                      <span className="ml-2 text-slate-400 flex-shrink-0">
-                        ▼
-                      </span>
-                    </button>
+                        <span className="ml-2 text-slate-400 flex-shrink-0">
+                          ▼
+                        </span>
+                      </button>
 
-                    {showTagDropdownInline && (
-                      <div className="absolute z-[9999] mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
-                        {tagOptions.map((tag) => (
+                      {showTagDropdownInline && (
+                        <div className="absolute z-[9999] mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                          {tagOptions.map((tag) => (
+                            <div
+                              key={tag}
+                              onClick={() => {
+                                setTagInlineFilter(tag);
+                                setShowTagDropdownInline(false);
+                              }}
+                              className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                            >
+                              <span>{tag}</span>
+                              {tagInlineFilter === tag && (
+                                <span className="text-indigo-600 font-bold">
+                                  ✓
+                                </span>
+                              )}
+                            </div>
+                          ))}
+
                           <div
-                            key={tag}
                             onClick={() => {
-                              setTagInlineFilter(tag);
+                              setTagInlineFilter("");
                               setShowTagDropdownInline(false);
                             }}
-                            className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
-                          >
-                            <span>{tag}</span>
-                            {tagInlineFilter === tag && (
-                              <span className="text-indigo-600 font-bold">
-                                ✓
-                              </span>
-                            )}
-                          </div>
-                        ))}
-
-                        <div
-                          onClick={() => {
-                            setTagInlineFilter("");
-                            setShowTagDropdownInline(false);
-                          }}
-                          className="
+                            className="
     px-4
     py-2
     border-t
@@ -726,149 +731,151 @@ placeholder:text-slate-400
     font-medium
     whitespace-nowrap
   "
-                        >
-                          Clear
+                          >
+                            Clear
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  "TAGS"
-                )}
-              </th>
+                      )}
+                    </div>
+                  ) : (
+                    "TAGS"
+                  )}
+                </th>
 
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2 ">
-                {showColumnFilters ? (
-                  <input
-                    placeholder="Release"
-                    value={defectReleaseInlineFilter}
-                    onChange={(e) =>
-                      setDefectReleaseInlineFilter(e.target.value)
-                    }
-                    className="
-w-full
-h-11
-px-4
-bg-white
-border
-border-slate-200
-rounded-2xl
-text-sm
-font-medium
-text-slate-700
-shadow-sm
-hover:border-indigo-300
-focus:border-indigo-500
-focus:ring-2
-focus:ring-indigo-100
-outline-none
-transition-all
-duration-200
-placeholder:text-slate-400
-"
-                  />
-                ) : (
-                  "DEFECT RELEASE"
-                )}
-              </th>
-
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
-                {showColumnFilters ? (
-                  <input
-                    placeholder="Owner"
-                    value={defectOwnerInlineFilter}
-                    onChange={(e) => setDefectOwnerInlineFilter(e.target.value)}
-                    className="
-w-full
-h-11
-px-4
-bg-white
-border
-border-slate-200
-rounded-2xl
-text-sm
-font-medium
-text-slate-700
-shadow-sm
-hover:border-indigo-300
-focus:border-indigo-500
-focus:ring-2
-focus:ring-indigo-100
-outline-none
-transition-all
-duration-200
-placeholder:text-slate-400
-"
-                  />
-                ) : (
-                  "DEFECT OWNER"
-                )}
-              </th>
-              <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
-                {showColumnFilters ? (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowSourceDropdownInline(!showSourceDropdownInline)
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2 ">
+                  {showColumnFilters ? (
+                    <input
+                      placeholder="Release"
+                      value={defectReleaseInlineFilter}
+                      onChange={(e) =>
+                        setDefectReleaseInlineFilter(e.target.value)
                       }
-                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
-                    >
-                      <span className="flex-1 truncate text-left">
-                        {sourceInlineFilter || "Source"}
-                      </span>
+                      className="
+w-full
+h-11
+px-4
+bg-white
+border
+border-slate-200
+rounded-2xl
+text-sm
+font-medium
+text-slate-700
+shadow-sm
+hover:border-indigo-300
+focus:border-indigo-500
+focus:ring-2
+focus:ring-indigo-100
+outline-none
+transition-all
+duration-200
+placeholder:text-slate-400
+"
+                    />
+                  ) : (
+                    "DEFECT RELEASE"
+                  )}
+                </th>
 
-                      <span className="ml-2 text-slate-400 flex-shrink-0">
-                        ▼
-                      </span>
-                    </button>
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
+                  {showColumnFilters ? (
+                    <input
+                      placeholder="Owner"
+                      value={defectOwnerInlineFilter}
+                      onChange={(e) =>
+                        setDefectOwnerInlineFilter(e.target.value)
+                      }
+                      className="
+w-full
+h-11
+px-4
+bg-white
+border
+border-slate-200
+rounded-2xl
+text-sm
+font-medium
+text-slate-700
+shadow-sm
+hover:border-indigo-300
+focus:border-indigo-500
+focus:ring-2
+focus:ring-indigo-100
+outline-none
+transition-all
+duration-200
+placeholder:text-slate-400
+"
+                    />
+                  ) : (
+                    "DEFECT OWNER"
+                  )}
+                </th>
+                <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-2">
+                  {showColumnFilters ? (
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowSourceDropdownInline(!showSourceDropdownInline)
+                        }
+                        className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
+                      >
+                        <span className="flex-1 truncate text-left">
+                          {sourceInlineFilter || "Source"}
+                        </span>
 
-                    {showSourceDropdownInline && (
-                      <div className="absolute z-[9999] mt-2 min-w-[150px] w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
-                        {sourceOptions.map((source) => (
+                        <span className="ml-2 text-slate-400 flex-shrink-0">
+                          ▼
+                        </span>
+                      </button>
+
+                      {showSourceDropdownInline && (
+                        <div className="absolute z-[9999] mt-2 min-w-[150px] w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                          {sourceOptions.map((source) => (
+                            <div
+                              key={source}
+                              onClick={() => {
+                                setSourceInlineFilter(source);
+                                setShowSourceDropdownInline(false);
+                              }}
+                              className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                            >
+                              <span>{source}</span>
+                              {sourceInlineFilter === source && (
+                                <span className="text-indigo-600 font-bold">
+                                  ✓
+                                </span>
+                              )}
+                            </div>
+                          ))}
+
                           <div
-                            key={source}
                             onClick={() => {
-                              setSourceInlineFilter(source);
+                              setSourceInlineFilter("");
                               setShowSourceDropdownInline(false);
                             }}
-                            className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                            className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
                           >
-                            <span>{source}</span>
-                            {sourceInlineFilter === source && (
-                              <span className="text-indigo-600 font-bold">
-                                ✓
-                              </span>
-                            )}
+                            Clear
                           </div>
-                        ))}
-
-                        <div
-                          onClick={() => {
-                            setSourceInlineFilter("");
-                            setShowSourceDropdownInline(false);
-                          }}
-                          className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
-                        >
-                          Clear
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  "SOURCE"
-                )}
-              </th>
-            </tr>
-          </thead>
+                      )}
+                    </div>
+                  ) : (
+                    "SOURCE"
+                  )}
+                </th>
+              </tr>
+            </thead>
 
-          <tbody>
-            {currentRows.length > 0 ? (
-              currentRows.map((item) => (
-                <tr
-                  key={item.id}
-                  onClick={() => setSelectedDefect(item)}
-                  className="
+            <tbody>
+              {currentRows.length > 0 ? (
+                currentRows.map((item) => (
+                  <tr
+                    key={item.id}
+                    onClick={() => setSelectedDefect(item)}
+                    className="
 
     h-16
 
@@ -885,10 +892,10 @@ placeholder:text-slate-400
     duration-200
 
   "
-                >
-                  <td>
-                    <div
-                      className="
+                  >
+                    <td>
+                      <div
+                        className="
 
     flex
 
@@ -909,210 +916,222 @@ placeholder:text-slate-400
     w-fit
 
   "
-                    >
-                      <button
-                        className="
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
 
+                            console.log("EDIT CLICKED", item);
+
+                            onEdit?.(item);
+                          }}
+                          className="
  w-8
-
  h-8
-
  rounded-lg
-
  hover:bg-white
-
  transition
-
  flex
-
  items-center
-
  justify-center
-
 "
-                      >
-                        <Pencil size={16} strokeWidth={2} />
-                      </button>
+                        >
+                          <Pencil size={16} strokeWidth={2} />
+                        </button>
 
-                      <button
-                        className="
-
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete?.(item.id);
+                          }}
+                          className="
     w-8
-
     h-8
-
     rounded-lg
-
     text-slate-400
-
-    hover:text-indigo-600
-
-    hover:bg-indigo-50
-
+    hover:text-red-600
+    hover:bg-red-50
     transition-all
-
     duration-200
-
     flex
-
     items-center
-
     justify-center
-
+    hover:scale-110
   "
-                      >
-                        <MoreHorizontal size={16} strokeWidth={2} />
-                      </button>
-                    </div>
-                  </td>
+                          title="Delete Defect"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
 
-                  <td className="py-4">{item.id}</td>
+                    <td className="py-4">{item.id}</td>
 
-                  <td className="font-medium text-slate-800">
-                    <div className="truncate max-w-[250px]" title={item.title}>
-                      {item.title}
-                    </div>
-                  </td>
-
-                  <td>
-                    <div className="flex items-center gap-2">
+                    <td className="font-medium text-slate-800">
                       <div
-                        className="
+                        className="truncate max-w-[250px]"
+                        title={item.title}
+                      >
+                        {item.title}
+                      </div>
+                    </td>
+
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="
       w-10 h-10
       rounded-full
       bg-gradient-to-r from-indigo-100 to-purple-100
       flex items-center justify-center
       text-xs
     "
-                      >
-                        {item.assignee
-                          .split(" ")
-                          .map((word) => word[0])
-                          .join("")}
+                        >
+                          {item.assignee
+                            .split(" ")
+                            .map((word) => word[0])
+                            .join("")}
+                        </div>
+
+                        <div
+                          className="truncate max-w-[180px]"
+                          title={item.assignee}
+                        >
+                          {item.assignee}
+                        </div>
                       </div>
+                    </td>
 
-                      <div
-                        className="truncate max-w-[180px]"
-                        title={item.assignee}
-                      >
-                        {item.assignee}
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    <span
-                      className={
-                        item.status === "Assigned"
-                          ? "bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-medium"
-                          : "bg-red-50 text-red-500 px-3 py-1 rounded-full text-xs font-medium"
-                      }
-                    >
-                      {item.status}
-                    </span>
-                  </td>
-
-                  <td>{item.stage}</td>
-
-                  <td>
-                    <div
-                      className="truncate max-w-[140px]"
-                      title={item.environment}
-                    >
-                      {item.environment}
-                    </div>
-                  </td>
-
-                  <td>
-                    <span
-                      className={
-                        item.severity === "Crash/Data Loss"
-                          ? "bg-red-50 text-red-500 font-medium px-3 py-2 rounded-full text-sm"
-                          : "bg-slate-100 text-slate-700 font-medium px-3 py-2 rounded-full text-sm"
-                      }
-                    >
+                    <td>
                       <span
-                        className="inline-block max-w-[130px] truncate align-middle"
-                        title={item.severity}
+                        className={
+                          item.status === "Assigned"
+                            ? "bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-medium"
+                            : "bg-red-50 text-red-500 px-3 py-1 rounded-full text-xs font-medium"
+                        }
                       >
-                        {item.severity}
+                        {item.status}
                       </span>
-                    </span>
-                  </td>
+                    </td>
 
-                  <td>
-                    <div className="truncate max-w-[80px]" title={item.tag}>
-                      {item.tag}
-                    </div>
-                  </td>
+                    <td>{item.stage}</td>
 
-                  <td>
-                    <div
-                      className="truncate max-w-[200px]"
-                      title={item.defectRelease}
-                    >
-                      {item.defectRelease}
-                    </div>
-                  </td>
-
-                  <td>
-                    <div className="flex items-center gap-2">
+                    <td>
                       <div
-                        className="
+                        className="truncate max-w-[140px]"
+                        title={item.environment}
+                      >
+                        {item.environment}
+                      </div>
+                    </td>
+
+                    <td>
+                      <span
+                        className={
+                          item.severity === "Crash/Data Loss"
+                            ? "bg-red-50 text-red-500 font-medium px-3 py-2 rounded-full text-sm"
+                            : "bg-slate-100 text-slate-700 font-medium px-3 py-2 rounded-full text-sm"
+                        }
+                      >
+                        <span
+                          className="inline-block max-w-[130px] truncate align-middle"
+                          title={item.severity}
+                        >
+                          {item.severity}
+                        </span>
+                      </span>
+                    </td>
+
+                    <td>
+                      <div className="truncate max-w-[80px]" title={item.tag}>
+                        {item.tag}
+                      </div>
+                    </td>
+
+                    <td>
+                      <div
+                        className="truncate max-w-[200px]"
+                        title={item.defectRelease}
+                      >
+                        {item.defectRelease}
+                      </div>
+                    </td>
+
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="
       w-8 h-8
       rounded-full
       bg-gradient-to-r from-cyan-100 to-blue-100
       flex items-center justify-center
       text-xs font-medium
     "
-                      >
-                        {item.defectOwner
-                          .split(" ")
-                          .map((word) => word[0])
-                          .join("")
-                          .slice(0, 2)}
-                      </div>
+                        >
+                          {item.defectOwner
+                            .split(" ")
+                            .map((word) => word[0])
+                            .join("")
+                            .slice(0, 2)}
+                        </div>
 
+                        <div
+                          className="truncate max-w-[180px]"
+                          title={item.defectOwner}
+                        >
+                          {item.defectOwner}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td>
                       <div
-                        className="truncate max-w-[180px]"
-                        title={item.defectOwner}
+                        className="truncate max-w-[120px]"
+                        title={item.source}
                       >
-                        {item.defectOwner}
+                        {item.source}
                       </div>
-                    </div>
-                  </td>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="12" className="py-16 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="text-4xl">🔍</div>
 
-                  <td>
-                    <div className="truncate max-w-[120px]" title={item.source}>
-                      {item.source}
+                      <h3 className="text-lg font-semibold text-slate-700">
+                        No matching defects found
+                      </h3>
+
+                      <p className="text-sm text-slate-500">
+                        Try changing your search term or filters.
+                      </p>
                     </div>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="12" className="py-16 text-center">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="text-4xl">🔍</div>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-                    <h3 className="text-lg font-semibold text-slate-700">
-                      No matching defects found
-                    </h3>
-
-                    <p className="text-sm text-slate-500">
-                      Try changing your search term or filters.
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-
-        <div className="relative flex items-center justify-between p-6 border-t border-slate-100">
+        <div
+          className="
+  flex
+  flex-col
+  md:flex-row
+  items-center
+  justify-between
+  gap-4
+  p-4
+  md:p-6
+  border-t
+  border-slate-100
+"
+        >
           {/* Left */}
 
-          <div>
+          <div className="text-center md:text-left">
             {filteredDefects.length === 0 ? (
               <span className="text-sm text-red-500 font-medium">
                 No matching records found
@@ -1127,7 +1146,17 @@ placeholder:text-slate-400
 
           {/* Center Pagination */}
 
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <div
+            className="
+  flex
+  flex-wrap
+  justify-center
+  items-center
+  gap-2
+  order-1
+  md:order-none
+"
+          >
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
@@ -1205,44 +1234,96 @@ placeholder:text-slate-400
 
           {/* Right */}
 
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500">Rows per page</span>
+          <div
+            className="
+  flex
+  flex-wrap
+  justify-center
+  items-center
+  gap-3
+"
+          >
+            <>
+              <span className="hidden md:block text-sm text-slate-500">
+                Rows per page
+              </span>
 
-            <select
-              value={rowsPerPage}
-              onChange={(e) => {
-                setRowsPerPage(Number(e.target.value));
+              <span className="block md:hidden text-sm text-slate-500">
+                Rows
+              </span>
+            </>
 
-                setCurrentPage(1);
-              }}
-              className="
+            <div className="relative">
+              <button
+                onClick={() => setShowRowsDropdown(!showRowsDropdown)}
+                className="
+    w-[80px]
+    h-10
+    border
+    border-slate-200
+    rounded-xl
+    bg-white
+    text-sm
+    font-medium
+    hover:bg-slate-50
+    transition
+    flex
+    items-center
+    justify-between
+    px-3
+  "
+              >
+                <span>{rowsPerPage}</span>
 
-        border
+                <span
+                  className={`transition-transform duration-200 ${
+                    showRowsDropdown ? "rotate-180" : ""
+                  }`}
+                >
+                  ▼
+                </span>
+              </button>
 
-        border-slate-200
-
-        rounded-xl
-
-        px-3
-
-        py-2
-
+              {showRowsDropdown && (
+                <div
+                  className="
+        absolute
+        bottom-full
+        right-0
+        mb-2
+        w-[90px]
         bg-white
-
-        outline-none
-
-        focus:border-indigo-400
-
+        border
+        border-slate-200
+        rounded-xl
+        shadow-xl
+        overflow-hidden
+        z-50
       "
-            >
-              <option value={5}>5</option>
-
-              <option value={10}>10</option>
-
-              <option value={15}>15</option>
-
-              <option value={20}>20</option>
-            </select>
+                >
+                  {[5, 10, 15, 20].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => {
+                        setRowsPerPage(n);
+                        setCurrentPage(1);
+                        setShowRowsDropdown(false);
+                      }}
+                      className="
+            w-full
+            px-3
+            py-2
+            text-left
+            hover:bg-indigo-50
+            transition
+          "
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1258,7 +1339,7 @@ placeholder:text-slate-400
 
     h-screen
 
-    w-[400px]
+    w-full md:w-[400px]
 
     bg-white
 

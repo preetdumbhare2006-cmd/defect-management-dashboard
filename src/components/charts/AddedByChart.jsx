@@ -11,7 +11,7 @@ import {
 
 
 
-export default function AddedByChart() {
+export default function AddedByChart({ onFilter }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -32,7 +32,16 @@ export default function AddedByChart() {
 
         <Tooltip />
 
-        <Bar dataKey="value" fill="#f3dd77" radius={[0, 8, 8, 0]} />
+        <Bar
+          dataKey="value"
+          fill="#e8d36c"
+          radius={[0, 8, 8, 0]}
+          onClick={(data) => {
+            if (data?.payload?.name) {
+              onFilter?.(data.payload.name);
+            }
+          }}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

@@ -21,12 +21,39 @@ export default function FilterBar({
     };
   }, []);
   return (
-    <div className="border-t border-gray-100 px-8 py-3 flex justify-between items-center">
-      <div className="flex gap-4">
+    <div
+      className="
+border-t
+border-gray-100
+px-4
+md:px-8
+py-3
+flex
+flex-col
+sm:flex-row
+gap-3
+justify-between
+items-start
+sm:items-center
+"
+    >
+      <div
+        className="
+flex
+flex-col
+sm:flex-row
+gap-3
+w-full
+sm:w-auto
+"
+      >
         <button
           onClick={() => setShowAnalytics(!showAnalytics)}
           className={`
-    px-6 py-3 rounded-full font-medium transition
+    w-full
+sm:w-auto
+px-6
+py-3 rounded-full font-medium transition
     ${
       showAnalytics
         ? "border border-indigo-500 bg-indigo-50 text-indigo-600"
@@ -40,7 +67,10 @@ export default function FilterBar({
         <button
           onClick={() => setShowFilters(!showFilters)}
           className={`
-    px-6 py-3 rounded-full font-medium transition
+    w-full
+sm:w-auto
+px-6
+py-3 rounded-full font-medium transition
     ${
       showFilters
         ? "border border-indigo-500 bg-indigo-50 text-indigo-600"

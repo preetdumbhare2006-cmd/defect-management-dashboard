@@ -11,7 +11,7 @@ import {
 
 
 
-export default function TagsChart() {
+export default function TagsChart({ onFilter }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -32,7 +32,14 @@ export default function TagsChart() {
 
         <Tooltip />
 
-        <Bar dataKey="value" fill="#bfead5" radius={[0, 8, 8, 0]} />
+        <Bar
+          dataKey="value"
+          fill="#bfead5"
+          radius={[0, 8, 8, 0]}
+          onClick={(data) => {
+            onFilter?.(data.tag);
+          }}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

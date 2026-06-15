@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-export default function SeverityChart() {
+export default function SeverityChart({ onFilter }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -25,7 +25,17 @@ export default function SeverityChart() {
 
   return (
     <ResponsiveContainer width="100%" height={320}>
-      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+      <RadarChart
+        cx="50%"
+        cy="50%"
+        outerRadius="80%"
+        data={data}
+        onClick={(state) => {
+          if (state?.activeLabel) {
+            onFilter?.(state.activeLabel);
+          }
+        }}
+      >
         <PolarGrid />
 
         <PolarAngleAxis dataKey="subject" />
@@ -37,7 +47,12 @@ export default function SeverityChart() {
           dataKey="value"
           stroke="#8b8df8"
           fill="#8b8df8"
-          fillOpacity={0.5}
+          fillOpacity={0.4}
+          onClick={(e) => {
+            if (e?.subject) {
+              onFilter?.(e.subject);
+            }
+          }}
         />
 
         <Tooltip />

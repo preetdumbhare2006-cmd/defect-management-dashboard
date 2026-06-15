@@ -8,7 +8,7 @@ const COLORS = [
   "#ef4444", // Rejected
 ];
 
-export default function AttentionRequiredChart() {
+export default function AttentionRequiredChart({ onFilter }){
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -29,6 +29,11 @@ export default function AttentionRequiredChart() {
           outerRadius={90}
           dataKey="value"
           nameKey="name"
+          onClick={(data) => {
+            if (data?.name) {
+              onFilter?.(data.name);
+            }
+          }}
         >
           {data.map((_, i) => (
             <Cell key={i} fill={COLORS[i % COLORS.length]} />

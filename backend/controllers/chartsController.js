@@ -62,10 +62,11 @@ const getTagsChart = (req, res) => {
 };
 const getWorkflowPulseChart = (req, res) => {
   const sql = `
-    SELECT status AS name,
+    SELECT stage AS name,
            COUNT(*) AS value
     FROM defects
-    GROUP BY status
+    GROUP BY stage
+    ORDER BY value DESC
   `;
 
   db.query(sql, (err, result) => {
@@ -90,30 +91,27 @@ const getAssignedToChart = (req, res) => {
   });
 };
 const getAddedByChart = (req, res) => {
-  const chartData = [
-    { name: "Richa", value: 15 },
-    { name: "Piyush", value: 8 },
-    { name: "Priyasha", value: 5 },
-    { name: "Ashish", value: 4 },
-    { name: "Sakshi", value: 4 },
-  ];
+  const sql = `
+    SELECT defectOwner AS name,
+           COUNT(*) AS value
+    FROM defects
+    GROUP BY defectOwner
+    ORDER BY value DESC
+  `;
 
-  res.json(chartData);
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json(err);
+
+    res.json(result);
+  });
 };
 const getAttentionRequiredChart = (req, res) => {
   const sql = `
-    SELECT status AS name,
+    SELECT severity AS name,
            COUNT(*) AS value
     FROM defects
-    WHERE status IN ('Assigned','Rejected')
-    GROUP BY status
-
-    UNION ALL
-
-    SELECT 'Open' AS name,
-           COUNT(*) AS value
-    FROM defects
-    WHERE stage = 'Open'
+    GROUP BY severity
+    ORDER BY value DESC
   `;
 
   db.query(sql, (err, result) => {

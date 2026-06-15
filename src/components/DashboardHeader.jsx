@@ -1,5 +1,10 @@
-import { Plus, Download, Archive } from "lucide-react";
-export default function DashboardHeader({ defects, activeTab, setActiveTab }) {
+import { Plus, Archive } from "lucide-react";
+export default function DashboardHeader({
+  defects,
+  activeTab,
+  setActiveTab,
+  onAddDefect,
+}) {
   const exportCSV = () => {
     const headers = ["ID", "Title", "Assignee", "Status", "Environment"];
 
@@ -23,21 +28,54 @@ export default function DashboardHeader({ defects, activeTab, setActiveTab }) {
     saveAs(blob, "defects-report.csv");
   };
   return (
-    <div className="p-6 flex justify-between items-center">
+    <div
+      className="
+p-4 md:p-6
+flex
+flex-col
+xl:flex-row
+gap-6
+justify-between
+items-start
+xl:items-center
+"
+    >
       <div>
-        <h1 className="text-4xl font-bold text-slate-900">
+        <h1
+          className="
+text-2xl
+sm:text-3xl
+md:text-4xl
+font-bold
+text-slate-900
+leading-tight
+"
+        >
           Defect Management Dashboard
         </h1>
 
         <p className="text-gray-400 mt-2">Smart Defect Control Center</p>
       </div>
 
-      <div className="flex gap-4">
+      <div
+        className="
+flex
+flex-col
+sm:flex-row
+flex-wrap
+gap-3
+w-full
+xl:w-auto
+"
+      >
         <button
           onClick={() => setActiveTab("active")}
           className={`
-    px-5
-    h-10
+    w-full
+sm:w-auto
+px-4
+h-auto
+min-h-[44px]
     rounded-2xl
     font-semibold
     transition-all
@@ -48,14 +86,17 @@ export default function DashboardHeader({ defects, activeTab, setActiveTab }) {
     }
   `}
         >
-          ● Active Defects 60
+          ● Active Defects {defects.length}
         </button>
 
         <button
           onClick={() => setActiveTab("archived")}
           className={`
-    px-5
-    h-10
+    w-full
+sm:w-auto
+px-4
+h-auto
+min-h-[44px]
     rounded-2xl
     font-semibold
     transition-all
@@ -70,31 +111,16 @@ export default function DashboardHeader({ defects, activeTab, setActiveTab }) {
         </button>
 
         <button
-          onClick={exportCSV}
+          onClick={() => {
+            console.log("ADD BUTTON CLICKED");
+            onAddDefect?.();
+          }}
           className="
-px-5
-h-10
-rounded-2xl
-bg-emerald-600
-text-white
-font-semibold
-shadow-lg
-shadow-emerald-200
-hover:-translate-y-0.5
-hover:bg-emerald-700
-transition-all
-duration-200
-flex items-center justify-center gap-2
-"
-        >
-          <Download size={18} />
-          Export CSV
-        </button>
-
-        <button
-          className="
-px-5
-h-10
+w-full
+sm:w-auto
+px-4
+h-auto
+min-h-[44px]
 rounded-2xl
 bg-gradient-to-r
 from-indigo-600

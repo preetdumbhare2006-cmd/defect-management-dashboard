@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const COLORS = ["#bfdcff", "#f4df7c"];
 
-export default function DefectSourceChart() {
+export default function DefectSourceChart({ onFilter }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -25,6 +25,9 @@ export default function DefectSourceChart() {
           outerRadius={85}
           dataKey="value"
           nameKey="name"
+          onClick={(data) => {
+            onFilter?.(data.name);
+          }}
         >
           {data.map((_, index) => (
             <Cell key={index} fill={COLORS[index % COLORS.length]} />

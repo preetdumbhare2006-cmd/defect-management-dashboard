@@ -17,6 +17,8 @@ import AddedByChart from "../components/charts/AddedByChart";
 
 import { archivedDefects } from "../data/archivedDefectsData";
 import { ChevronDown } from "lucide-react";
+import AddDefectModal from "../components/AddDefectModal";
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
   const [defects, setDefects] = useState([]);
@@ -48,18 +50,21 @@ export default function Dashboard() {
   const [attentionData, setAttentionData] = useState([]);
   const [agingData, setAgingData] = useState([]);
   const [addedByData, setAddedByData] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/defects")
-      .then((res) => {
-        console.log("API Data:", res.data);
-        setDefects(res.data);
-      })
-      .catch((err) => {
-        console.error("API Error:", err);
-      });
-  }, []);
+ const fetchDefects = () => {
+   axios
+     .get("http://localhost:5000/api/defects")
+     .then((res) => {
+       setDefects(res.data);
+     })
+     .catch(console.error);
+ };
+
+ useEffect(() => {
+   fetchDefects();
+ }, []);
   useEffect(() => {
     axios
       .get("http://localhost:5000/api/charts/severity")
@@ -84,39 +89,83 @@ export default function Dashboard() {
       .then((res) => setTagsData(res.data))
       .catch(console.error);
   }, []);
- 
+
   useEffect(() => {
     axios
-  .get("http://localhost:5000/api/charts/workflow-pulse")
-  .then((res) => setWorkflowData(res.data))
-      .catch(console.error);
-  }, []);
-  useEffect(() => {
-      axios
-  .get("http://localhost:5000/api/charts/assigned-to")
-  .then((res) => setAssignedData(res.data))
+      .get("http://localhost:5000/api/charts/workflow-pulse")
+      .then((res) => setWorkflowData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-  .get("http://localhost:5000/api/charts/attention-required")
-  .then((res) => setAttentionData(res.data))
+      .get("http://localhost:5000/api/charts/assigned-to")
+      .then((res) => setAssignedData(res.data))
       .catch(console.error);
   }, []);
-   useEffect(() => {
+  useEffect(() => {
     axios
-  .get("http://localhost:5000/api/charts/aging")
-  .then((res) => setAgingData(res.data))
-       .catch(console.error);
-   }, []);
-   useEffect(() => {
-     axios
-       .get("http://localhost:5000/api/charts/added-by")
-       .then((res) => setAddedByData(res.data))
-       .catch(console.error);
-   }, []);
+      .get("http://localhost:5000/api/charts/attention-required")
+      .then((res) => setAttentionData(res.data))
+      .catch(console.error);
+  }, []);
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/charts/aging")
+      .then((res) => setAgingData(res.data))
+      .catch(console.error);
+  }, []);
+  useEffect(() => {
+    axios
+      .get("http://localhost:5000/api/charts/added-by")
+      .then((res) => setAddedByData(res.data))
+      .catch(console.error);
+  }, []);
+  useEffect(() => {
+    console.log("ASSIGNEE FILTER STATE:", assigneeFilter);
+  }, [assigneeFilter]);
+  useEffect(() => {
+    console.log("STATUS FILTER STATE:", statusFilter);
+  }, [statusFilter]);
 
   const [sourceFilter, setSourceFilter] = useState([]);
+  const toggleFilter = (setter, value) => {
+    setter((prev) =>
+      prev.includes(value)
+        ? prev.filter((item) => item !== value)
+        : [...prev, value],
+    );
+  };
+
+ const applyChartFilter = (filterType, value)  => {
+  console.log("APPLY FILTER CALLED:", filterType, value);
+    switch (filterType) {
+      case "severity":
+        toggleFilter(setSeverityFilter, value);
+        break;
+
+      case "environment":
+        toggleFilter(setEnvironmentFilter, value);
+        break;
+
+      case "source":
+        toggleFilter(setSourceFilter, value);
+        break;
+
+      case "tag":
+        toggleFilter(setTagFilter, value);
+        break;
+
+      case "assignee":
+        toggleFilter(setAssigneeFilter, value);
+        break;
+      case "status":
+        toggleFilter(setStatusFilter, value);
+        break;
+
+      default:
+        break;
+    }
+  };
   const [showSourceDropdown, setShowSourceDropdown] = useState(false);
 
   const [showEnvironmentDropdown, setShowEnvironmentDropdown] = useState(false);
@@ -148,29 +197,80 @@ hover:shadow-md
 transition-all duration-300
 cursor-pointer
 `;
-  const statusOptions = [...new Set(defects.map((item) => item.status))];
-  const stageOptions = [...new Set(defects.map((item) => item.stage))];
-  const environmentOptions = [
-    ...new Set(defects.map((item) => item.environment)),
-  ];
-  const severityOptions = [...new Set(defects.map((item) => item.severity))];
-  const assigneeOptions = [...new Set(defects.map((item) => item.assignee))];
-  const tagOptions = [...new Set(defects.map((item) => item.tag))];
+ const cleanOptions = (arr) => {
+   return [
+     ...new Set(
+       arr
+         .map((item) => item?.trim())
+         .filter((item) => item && item.length > 0),
+     ),
+   ];
+ };
 
-  const sourceOptions = [...new Set(defects.map((item) => item.source))];
-  const defectOwnerOptions = [
-    ...new Set(defects.map((item) => item.defectOwner)),
-  ];
+  const statusOptions = cleanOptions(defects.map((item) => item.status));
+
+  const stageOptions = cleanOptions(defects.map((item) => item.stage));
+
+  const environmentOptions = cleanOptions(
+    defects.map((item) => item.environment),
+  );
+
+  const severityOptions = cleanOptions(defects.map((item) => item.severity));
+
+  const assigneeOptions = cleanOptions(defects.map((item) => item.assignee));
+
+  const tagOptions = cleanOptions(defects.map((item) => item.tag));
+
+  const sourceOptions = cleanOptions(defects.map((item) => item.source));
+
+  const defectOwnerOptions = cleanOptions(
+    defects.map((item) => item.defectOwner),
+  );
+  const [editingDefect, setEditingDefect] = useState(null);
+
+  const handleEdit = (defect) => {
+    setEditingDefect(defect);
+    setShowAddModal(true);
+  };
+
+  const [deleteId, setDeleteId] = useState(null);
+
+  const handleDelete = (id) => {
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    await axios.delete(`http://localhost:5000/api/defects/${deleteId}`);
+
+    setDeleteId(null);
+
+    fetchDefects();
+    toast.success("Defect Deleted Successfully", {
+      icon: "🗑️",
+    });
+  };
+  
 
   return (
     <div className="bg-[#f7f8fc] min-h-screen">
       <Navbar search={search} setSearch={setSearch} />
 
-      <div className="mx-4 mt-3 bg-white rounded-3xl overflow-hidden border border-gray-100">
+      <div
+        className="
+mx-2 md:mx-4
+mt-3
+bg-white
+rounded-3xl
+overflow-hidden
+border
+border-gray-100
+"
+      >
         <DashboardHeader
           defects={defects}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
+          onAddDefect={() => setShowAddModal(true)}
         />
 
         <FilterBar
@@ -193,7 +293,18 @@ cursor-pointer
         />
 
         {showFilters && (
-          <div className="px-8 py-5 bg-slate-50 rounded-[28px] mx-8 mb-6 border border-slate-200">
+          <div
+            className="
+px-4 md:px-8
+py-5
+bg-slate-50
+rounded-[28px]
+mx-4 md:mx-8
+mb-6
+border
+border-slate-200
+"
+          >
             {/* Filter Tags Container */}
             <div className="flex justify-end mb-4">
               <div
@@ -500,7 +611,18 @@ ml-2
             </div>
 
             {/* Filter Dropdowns */}
-            <div className="grid grid-cols-5 gap-8 mb-8">
+            <div
+              className="
+grid
+grid-cols-1
+sm:grid-cols-2
+lg:grid-cols-3
+xl:grid-cols-5
+gap-4
+md:gap-6
+mb-8
+"
+            >
               <div>
                 <div className="relative">
                   <button
@@ -923,7 +1045,17 @@ animate-in fade-in zoom-in-95
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 mt-4">
+            <div
+              className="
+grid
+grid-cols-1
+md:grid-cols-2
+xl:grid-cols-3
+gap-4
+md:gap-6
+mt-4
+"
+            >
               <div>
                 <div className="relative">
                   <button
@@ -1188,7 +1320,14 @@ transition-all duration-200
           </div>
         )}
         {showAnalytics && (
-          <div className="relative px-8 pb-8 pt-2">
+          <div
+            className="
+relative
+px-4 md:px-8
+pb-8
+pt-2
+"
+          >
             {showLeftArrow && (
               <button
                 onClick={() =>
@@ -1213,52 +1352,74 @@ transition-all duration-200
               ref={chartRef}
               className="flex gap-6 overflow-x-auto scroll-smooth no-scrollbar pb-2"
             >
-              <div className="w-[420px] flex-shrink-0">
+              <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
                 <ChartCard title="Severity" footerData={severityData}>
-                  <SeverityChart />
+                  <SeverityChart
+                    onFilter={(value) => applyChartFilter("severity", value)}
+                  />
                 </ChartCard>
               </div>
-              <div className="w-[420px] flex-shrink-0">
+              <div className="w-[280px] sm:w-[320px] md:w-[420px]flex-shrink-0">
                 <ChartCard title="Aging" footerData={agingData}>
                   <AgingChart />
                 </ChartCard>
               </div>
-             <div className="w-[420px] flex-shrink-0">
+              <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
                 <ChartCard title="Defect Source" footerData={sourceData}>
-                  <DefectSourceChart />
+                  <DefectSourceChart
+                    onFilter={(value) => applyChartFilter("source", value)}
+                  />
                 </ChartCard>
               </div>
-              <div className="w-[420px] flex-shrink-0">
+              <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
                 <ChartCard title="Tags" footerData={tagsData}>
-                  <TagsChart />
+                  <TagsChart
+                    onFilter={(value) => applyChartFilter("tag", value)}
+                  />
                 </ChartCard>
               </div>
-             <div className="w-[420px] flex-shrink-0">
+              <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
                 <ChartCard title="Workflow Pulse" footerData={workflowData}>
-                  <WorkFlowPulseChart />
+                  <WorkFlowPulseChart
+                    onFilter={(value) => toggleFilter(setStageFilter, value)}
+                  />
                 </ChartCard>
               </div>
-             <div className="w-[420px] flex-shrink-0">
+              <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
                 <ChartCard
                   title="Attention Required"
                   footerData={attentionData}
                 >
-                  <AttentionRequiredChart />
+                  <AttentionRequiredChart
+                    onFilter={(value) => toggleFilter(setSeverityFilter, value)}
+                  />
                 </ChartCard>
               </div>
-             <div className="w-[420px] flex-shrink-0">
+              <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
                 <ChartCard title="Environment" footerData={environmentData}>
-                  <EnvironmentChart />
+                  <EnvironmentChart
+                    onFilter={(value) => applyChartFilter("environment", value)}
+                  />
                 </ChartCard>
               </div>
-             <div className="w-[420px] flex-shrink-0">
+              <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
                 <ChartCard title="Assigned To" footerData={assignedData}>
-                  <AssignedToChart />
+                  <AssignedToChart
+                    onFilter={(value) => {
+                      console.log("FROM DASHBOARD:", value);
+
+                      applyChartFilter("assignee", value);
+                    }}
+                  />
                 </ChartCard>
               </div>
-             <div className="w-[420px] flex-shrink-0">
+              <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
                 <ChartCard title="Added By" footerData={addedByData}>
-                  <AddedByChart />
+                  <AddedByChart
+                    onFilter={(value) =>
+                      toggleFilter(setDefectOwnerFilter, value)
+                    }
+                  />
                 </ChartCard>
               </div>
             </div>
@@ -1281,8 +1442,105 @@ transition-all duration-200
           sourceFilter={sourceFilter}
           defectOwnerFilter={defectOwnerFilter}
           sourceFilter={sourceFilter}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
         />
       </div>
+      {showAddModal && (
+        <AddDefectModal
+          defects={defects}
+          editingDefect={editingDefect}
+          onClose={() => {
+            setShowAddModal(false);
+            setEditingDefect(null);
+          }}
+          onSuccess={(message) => {
+            fetchDefects();
+            setSuccessMessage(message);
+          }}
+        />
+      )}
+      {deleteId && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 w-[420px] shadow-2xl">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+                🗑️
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-bold text-center text-slate-800">
+              Delete Defect?
+            </h2>
+
+            <p className="text-center text-slate-500 mt-3">
+              This action cannot be undone.
+            </p>
+
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={() => setDeleteId(null)}
+                className="
+            flex-1
+            py-3
+            rounded-xl
+            border
+            border-slate-300
+            hover:bg-slate-50
+          "
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={confirmDelete}
+                className="
+            flex-1
+            py-3
+            rounded-xl
+            bg-red-600
+            text-white
+            hover:bg-red-700
+          "
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {successMessage && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 w-[420px] shadow-2xl">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                ✅
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-bold text-center text-slate-800">
+              Success
+            </h2>
+
+            <p className="text-center text-slate-500 mt-3">{successMessage}</p>
+
+            <button
+              onClick={() => setSuccessMessage("")}
+              className="
+          mt-6
+          w-full
+          py-3
+          rounded-xl
+          bg-green-600
+          text-white
+          hover:bg-green-700
+        "
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 
-export default function WorkFlowPulseChart() {
+export default function WorkFlowPulseChart({ onFilter }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -28,7 +28,16 @@ export default function WorkFlowPulseChart() {
         <YAxis type="category" dataKey="name" />
         <Tooltip />
 
-        <Bar dataKey="value" fill="#bfc9ff" radius={[0, 8, 8, 0]} />
+        <Bar
+          dataKey="value"
+          fill="#bfc9ff"
+          radius={[0, 8, 8, 0]}
+          onClick={(data) => {
+            if (data?.payload?.name) {
+              onFilter(data.payload.name);
+            }
+          }}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

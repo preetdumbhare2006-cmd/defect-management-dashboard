@@ -11,7 +11,7 @@ import {
 
 
 
-export default function AssignedToChart() {
+export default function AssignedToChart({ onFilter }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -25,14 +25,21 @@ export default function AssignedToChart() {
 
   return (
     <ResponsiveContainer width="100%" height={320}>
-      <BarChart layout="vertical" data={data}>
+      <BarChart
+        layout="vertical"
+        data={data}
+        onClick={(state) => {
+          console.log("CLICKED:", state);
+          console.log("ONFILTER:", onFilter);
+
+          if (state?.activeLabel) {
+            onFilter?.(state.activeLabel);
+          }
+        }}
+      >
         <XAxis type="number" />
 
-        <YAxis
-          type="category"
-          dataKey="name"
-          width={140}
-        />
+        <YAxis type="category" dataKey="name" width={140} />
 
         <Tooltip />
 
@@ -40,6 +47,7 @@ export default function AssignedToChart() {
           dataKey="value"
           fill="#98e3bf"
           radius={[0, 8, 8, 0]}
+          
         />
       </BarChart>
     </ResponsiveContainer>
