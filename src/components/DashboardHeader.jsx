@@ -4,6 +4,7 @@ export default function DashboardHeader({
   activeTab,
   setActiveTab,
   onAddDefect,
+  user,
 }) {
   const exportCSV = () => {
     const headers = ["ID", "Title", "Assignee", "Status", "Environment"];
@@ -109,7 +110,7 @@ min-h-[44px]
         >
           Archived Defects 1129
         </button>
-
+        {user?.role === "admin" && (
         <button
           onClick={() => {
             console.log("ADD BUTTON CLICKED");
@@ -138,6 +139,7 @@ flex items-center justify-center gap-2
           <Plus size={18} />
           Add Defect
         </button>
+        )}
       </div>
     </div>
   );

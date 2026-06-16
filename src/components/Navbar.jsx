@@ -1,4 +1,5 @@
 import { FiMenu, FiBell, FiMail, FiSearch } from "react-icons/fi";
+import { LogOut } from "lucide-react";
 
 export default function Navbar({ search, setSearch, darkMode, setDarkMode }) {
   return (
@@ -118,7 +119,29 @@ justify-center
         >
           <FiBell size={18} />
         </div>
-
+        <button
+          onClick={() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+          }}
+          className="
+    w-10
+    h-10
+    rounded-xl
+    border
+    border-slate-200
+    bg-slate-50
+    flex
+    items-center
+    justify-center
+    hover:bg-red-50
+    hover:text-red-600
+    transition
+  "
+        >
+          <LogOut size={18} />
+        </button>
         <div className="flex items-center gap-3">
           <div className="text-right">
             <div className="font-medium text-sm">Info QA</div>

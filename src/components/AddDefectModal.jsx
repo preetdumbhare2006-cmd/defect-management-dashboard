@@ -57,6 +57,7 @@ export default function AddDefectModal({
  const sources = [...new Set(defects.map((d) => normalize(d.source)))];
 
   const handleSubmit = async () => {
+    const token = localStorage.getItem("token");
     if (!formData.title.trim()) {
       alert("Title is required");
       return;
@@ -77,13 +78,22 @@ export default function AddDefectModal({
        await axios.put(
          `http://localhost:5000/api/defects/${editingDefect.id}`,
          formData,
+         {
+           headers: {
+             Authorization: `Bearer ${token}`,
+           },
+         },
        );
 
        toast.success("Defect Updated Successfully", {
          icon: "✨",
        });
      } else {
-       await axios.post("http://localhost:5000/api/defects", formData);
+       await axios.post("http://localhost:5000/api/defects", formData, {
+         headers: {
+           Authorization: `Bearer ${token}`,
+         },
+       });
 
       toast.success("Defect Added Successfully", {
         icon: "🚀",

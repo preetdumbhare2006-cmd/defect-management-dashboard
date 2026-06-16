@@ -1,4 +1,6 @@
 const express = require("express");
+const verifyToken = require("../middleware/authMiddleware");
+const verifyAdmin = require("../middleware/adminMiddleware");
 
 const router = express.Router();
 
@@ -9,9 +11,12 @@ const {
   deleteDefect,
 } = require("../controllers/defectsController");
 
-router.get("/", getAllDefects);
-router.post("/", addDefect);
-router.put("/:id", updateDefect);
-router.delete("/:id", deleteDefect);
+router.get("/", verifyToken, getAllDefects);
+
+router.post("/", verifyToken, verifyAdmin, addDefect);
+
+router.put("/:id", verifyToken, verifyAdmin, updateDefect);
+
+router.delete("/:id", verifyToken, verifyAdmin, deleteDefect);
 
 module.exports = router;

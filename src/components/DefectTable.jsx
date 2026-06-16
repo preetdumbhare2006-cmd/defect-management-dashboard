@@ -21,6 +21,7 @@ export default function DefectTable({
   onEdit,
   onDelete,
 }) {
+  const user = JSON.parse(localStorage.getItem("user"));
   const [sortAsc, setSortAsc] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -894,75 +895,67 @@ placeholder:text-slate-400
   "
                   >
                     <td>
-                      <div
-                        className="
-
-    flex
-
-    items-center
-
-    gap-1
-
-    bg-slate-50
-
-    border
-
-    border-slate-100
-
-    p-1
-
-    rounded-xl
-
-    w-fit
-
-  "
-                      >
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-
-                            console.log("EDIT CLICKED", item);
-
-                            onEdit?.(item);
-                          }}
+                      {user?.role === "admin" && (
+                        <div
                           className="
- w-8
- h-8
- rounded-lg
- hover:bg-white
- transition
- flex
- items-center
- justify-center
-"
+        flex
+        items-center
+        gap-1
+        bg-slate-50
+        border
+        border-slate-100
+        p-1
+        rounded-xl
+        w-fit
+      "
                         >
-                          <Pencil size={16} strokeWidth={2} />
-                        </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
 
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete?.(item.id);
-                          }}
-                          className="
-    w-8
-    h-8
-    rounded-lg
-    text-slate-400
-    hover:text-red-600
-    hover:bg-red-50
-    transition-all
-    duration-200
-    flex
-    items-center
-    justify-center
-    hover:scale-110
-  "
-                          title="Delete Defect"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
+                              console.log("EDIT CLICKED", item);
+
+                              onEdit?.(item);
+                            }}
+                            className="
+          w-8
+          h-8
+          rounded-lg
+          hover:bg-white
+          transition
+          flex
+          items-center
+          justify-center
+        "
+                          >
+                            <Pencil size={16} strokeWidth={2} />
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete?.(item.id);
+                            }}
+                            className="
+          w-8
+          h-8
+          rounded-lg
+          text-slate-400
+          hover:text-red-600
+          hover:bg-red-50
+          transition-all
+          duration-200
+          flex
+          items-center
+          justify-center
+          hover:scale-110
+        "
+                            title="Delete Defect"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      )}
                     </td>
 
                     <td className="py-4">{item.id}</td>

@@ -51,15 +51,21 @@ export default function Dashboard() {
   const [agingData, setAgingData] = useState([]);
   const [addedByData, setAddedByData] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
   const [successMessage, setSuccessMessage] = useState("");
 
  const fetchDefects = () => {
-   axios
-     .get("http://localhost:5000/api/defects")
-     .then((res) => {
-       setDefects(res.data);
-     })
-     .catch(console.error);
+  axios
+    .get("http://localhost:5000/api/defects", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((res) => {
+      setDefects(res.data);
+    })
+    .catch(console.error);
  };
 
  useEffect(() => {
@@ -240,7 +246,11 @@ cursor-pointer
   };
 
   const confirmDelete = async () => {
-    await axios.delete(`http://localhost:5000/api/defects/${deleteId}`);
+    await axios.delete(`http://localhost:5000/api/defects/${deleteId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     setDeleteId(null);
 
@@ -271,8 +281,8 @@ border-gray-100
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onAddDefect={() => setShowAddModal(true)}
+          user={user}
         />
-
         <FilterBar
           showAnalytics={showAnalytics}
           setShowAnalytics={setShowAnalytics}

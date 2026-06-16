@@ -1,4 +1,6 @@
 const express = require("express");
+const authRoutes = require("./routes/authRoutes");
+
 
 const cors = require("cors");
 require("./config/db");
@@ -17,6 +19,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/defects", defectsRoutes);
 app.use("/api/charts", chartsRoutes);
+app.use("/api/auth", authRoutes);
 
 app.listen(5000, () => {
   console.log("Server Running On Port 5000");
