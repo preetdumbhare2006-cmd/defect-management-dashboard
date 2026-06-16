@@ -14,7 +14,7 @@ export default function TagsChart({ onFilter }) {
 
   useEffect(() => {
     axios
-      .get("http://https://defect-dashboard-api.onrender.com/api/charts/tags")
+      .get("http://localhost:5000/api/charts/tags")
       .then((res) => {
         setData(res.data);
       })

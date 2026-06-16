@@ -14,7 +14,7 @@ export default function AgingChart() {
 
   useEffect(() => {
     axios
-      .get("http://https://defect-dashboard-api.onrender.com/api/charts/aging")
+      .get("http://localhost:5000/api/charts/aging")
       .then((res) => {
         setData(res.data);
       })

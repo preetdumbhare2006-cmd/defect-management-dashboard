@@ -9,9 +9,7 @@ export default function EnvironmentChart({ onFilter }) {
 
   useEffect(() => {
     axios
-      .get(
-        "http://https://defect-dashboard-api.onrender.com/api/charts/environment",
-      )
+      .get("http://localhost:5000/api/charts/environment")
       .then((res) => {
         setData(res.data);
       })

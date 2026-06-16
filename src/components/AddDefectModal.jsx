@@ -76,7 +76,7 @@ export default function AddDefectModal({
     try {
       if (editingDefect) {
         await axios.put(
-          `http://https://defect-dashboard-api.onrender.com/api/defects/${editingDefect.id}`,
+          `http://http://localhost:5000/api/defects/${editingDefect.id}`,
           formData,
           {
             headers: {
@@ -89,15 +89,11 @@ export default function AddDefectModal({
           icon: "✨",
         });
       } else {
-        await axios.post(
-          "http://https://defect-dashboard-api.onrender.com/api/defects",
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+        await axios.post("http://localhost:5000/api/defects", formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
-        );
+        });
 
         toast.success("Defect Added Successfully", {
           icon: "🚀",

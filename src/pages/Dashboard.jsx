@@ -57,7 +57,7 @@ export default function Dashboard() {
 
   const fetchDefects = () => {
     axios
-      .get("http://https://defect-dashboard-api.onrender.com/api/defects", {
+      .get("http://localhost:5000/api/defects", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -73,68 +73,56 @@ export default function Dashboard() {
   }, []);
   useEffect(() => {
     axios
-      .get(
-        "http://https://defect-dashboard-api.onrender.com/api/charts/severity",
-      )
+      .get("http://localhost:5000/api/charts/severity")
       .then((res) => setSeverityData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get(
-        "http://https://defect-dashboard-api.onrender.com/api/charts/environment",
-      )
+      .get("http://localhost:5000/api/charts/environment")
       .then((res) => setEnvironmentData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get("http://https://defect-dashboard-api.onrender.com/api/charts/source")
+      .get("http://localhost:5000/api/charts/source")
       .then((res) => setSourceData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get("http://https://defect-dashboard-api.onrender.com/api/charts/tags")
+      .get("http://localhost:5000/api/charts/tags")
       .then((res) => setTagsData(res.data))
       .catch(console.error);
   }, []);
 
   useEffect(() => {
     axios
-      .get(
-        "http://https://defect-dashboard-api.onrender.com/api/charts/workflow-pulse",
-      )
+      .get("http://localhost:5000/api/charts/workflow-pulse")
       .then((res) => setWorkflowData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get(
-        "http://https://defect-dashboard-api.onrender.com/api/charts/assigned-to",
-      )
+      .get("http://localhost:5000/api/charts/assigned-to")
       .then((res) => setAssignedData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get(
-        "http://https://defect-dashboard-api.onrender.com/api/charts/attention-required",
-      )
+      .get("http://localhost:5000/api/charts/attention-required")
       .then((res) => setAttentionData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get("http://https://defect-dashboard-api.onrender.com/api/charts/aging")
+      .get("http://localhost:5000/api/charts/aging")
       .then((res) => setAgingData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get(
-        "http://https://defect-dashboard-api.onrender.com/api/charts/added-by",
-      )
+      .get("http://localhost:5000/api/charts/added-by")
       .then((res) => setAddedByData(res.data))
       .catch(console.error);
   }, []);
@@ -258,14 +246,11 @@ cursor-pointer
   };
 
   const confirmDelete = async () => {
-    await axios.delete(
-      `http://https://defect-dashboard-api.onrender.com/api/defects/${deleteId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    await axios.delete(`http://localhost:5000/api/defects/${deleteId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
 
     setDeleteId(null);
 

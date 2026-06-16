@@ -14,9 +14,7 @@ export default function AddedByChart({ onFilter }) {
 
   useEffect(() => {
     axios
-      .get(
-        "http://https://defect-dashboard-api.onrender.com/api/charts/added-by",
-      )
+      .get("http://localhost:5000/api/charts/added-by")
       .then((res) => {
         setData(res.data);
       })

@@ -14,9 +14,7 @@ export default function AssignedToChart({ onFilter }) {
 
   useEffect(() => {
     axios
-      .get(
-        "http://https://defect-dashboard-api.onrender.com/api/charts/assigned-to",
-      )
+      .get("http://localhost:5000/api/charts/assigned-to")
       .then((res) => {
         setData(res.data);
       })

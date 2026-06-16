@@ -13,9 +13,7 @@ export default function AttentionRequiredChart({ onFilter }) {
 
   useEffect(() => {
     axios
-      .get(
-        "http://https://defect-dashboard-api.onrender.com/api/charts/attention-required",
-      )
+      .get("http://localhost:5000/api/charts/attention-required")
       .then((res) => {
         setData(res.data);
       })
