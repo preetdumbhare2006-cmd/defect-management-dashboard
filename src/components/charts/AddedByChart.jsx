@@ -9,14 +9,14 @@ import {
   Tooltip,
 } from "recharts";
 
-
-
 export default function AddedByChart({ onFilter }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/added-by")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/added-by",
+      )
       .then((res) => {
         setData(res.data);
       })

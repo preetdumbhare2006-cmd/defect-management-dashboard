@@ -9,14 +9,12 @@ import {
   Tooltip,
 } from "recharts";
 
-
-
 export default function TagsChart({ onFilter }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/tags")
+      .get("http://https://defect-dashboard-api.onrender.com/api/charts/tags")
       .then((res) => {
         setData(res.data);
       })

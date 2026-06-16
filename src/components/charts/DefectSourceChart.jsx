@@ -9,7 +9,7 @@ export default function DefectSourceChart({ onFilter }) {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/source")
+      .get("http://https://defect-dashboard-api.onrender.com/api/charts/source")
       .then((res) => {
         setData(res.data);
       })

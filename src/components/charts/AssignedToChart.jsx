@@ -9,14 +9,14 @@ import {
   Tooltip,
 } from "recharts";
 
-
-
 export default function AssignedToChart({ onFilter }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/assigned-to")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/assigned-to",
+      )
       .then((res) => {
         setData(res.data);
       })
@@ -43,12 +43,7 @@ export default function AssignedToChart({ onFilter }) {
 
         <Tooltip />
 
-        <Bar
-          dataKey="value"
-          fill="#98e3bf"
-          radius={[0, 8, 8, 0]}
-          
-        />
+        <Bar dataKey="value" fill="#98e3bf" radius={[0, 8, 8, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

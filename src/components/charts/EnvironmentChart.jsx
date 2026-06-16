@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
-
-
 const colors = ["#c5ceff", "#9ce0be", "#a8c7ef", "#f5df82"];
 
 export default function EnvironmentChart({ onFilter }) {
@@ -11,7 +9,9 @@ export default function EnvironmentChart({ onFilter }) {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/environment")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/environment",
+      )
       .then((res) => {
         setData(res.data);
       })

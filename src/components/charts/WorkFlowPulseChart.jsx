@@ -14,7 +14,7 @@ export default function WorkFlowPulseChart({ onFilter }) {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/workflow-pulse")
+      .get("http://https://defect-dashboard-api.onrender.com/api/charts/workflow-pulse")
       .then((res) => {
         setData(res.data);
       })

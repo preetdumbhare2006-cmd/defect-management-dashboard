@@ -55,74 +55,86 @@ export default function Dashboard() {
   const token = localStorage.getItem("token");
   const [successMessage, setSuccessMessage] = useState("");
 
- const fetchDefects = () => {
-  axios
-    .get("http://localhost:5000/api/defects", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    .then((res) => {
-      setDefects(res.data);
-    })
-    .catch(console.error);
- };
+  const fetchDefects = () => {
+    axios
+      .get("http://https://defect-dashboard-api.onrender.com/api/defects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        setDefects(res.data);
+      })
+      .catch(console.error);
+  };
 
- useEffect(() => {
-   fetchDefects();
- }, []);
+  useEffect(() => {
+    fetchDefects();
+  }, []);
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/severity")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/severity",
+      )
       .then((res) => setSeverityData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/environment")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/environment",
+      )
       .then((res) => setEnvironmentData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/source")
+      .get("http://https://defect-dashboard-api.onrender.com/api/charts/source")
       .then((res) => setSourceData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/tags")
+      .get("http://https://defect-dashboard-api.onrender.com/api/charts/tags")
       .then((res) => setTagsData(res.data))
       .catch(console.error);
   }, []);
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/workflow-pulse")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/workflow-pulse",
+      )
       .then((res) => setWorkflowData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/assigned-to")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/assigned-to",
+      )
       .then((res) => setAssignedData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/attention-required")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/attention-required",
+      )
       .then((res) => setAttentionData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/aging")
+      .get("http://https://defect-dashboard-api.onrender.com/api/charts/aging")
       .then((res) => setAgingData(res.data))
       .catch(console.error);
   }, []);
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/added-by")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/added-by",
+      )
       .then((res) => setAddedByData(res.data))
       .catch(console.error);
   }, []);
@@ -142,8 +154,8 @@ export default function Dashboard() {
     );
   };
 
- const applyChartFilter = (filterType, value)  => {
-  console.log("APPLY FILTER CALLED:", filterType, value);
+  const applyChartFilter = (filterType, value) => {
+    console.log("APPLY FILTER CALLED:", filterType, value);
     switch (filterType) {
       case "severity":
         toggleFilter(setSeverityFilter, value);
@@ -203,15 +215,15 @@ hover:shadow-md
 transition-all duration-300
 cursor-pointer
 `;
- const cleanOptions = (arr) => {
-   return [
-     ...new Set(
-       arr
-         .map((item) => item?.trim())
-         .filter((item) => item && item.length > 0),
-     ),
-   ];
- };
+  const cleanOptions = (arr) => {
+    return [
+      ...new Set(
+        arr
+          .map((item) => item?.trim())
+          .filter((item) => item && item.length > 0),
+      ),
+    ];
+  };
 
   const statusOptions = cleanOptions(defects.map((item) => item.status));
 
@@ -246,11 +258,14 @@ cursor-pointer
   };
 
   const confirmDelete = async () => {
-    await axios.delete(`http://localhost:5000/api/defects/${deleteId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    await axios.delete(
+      `http://https://defect-dashboard-api.onrender.com/api/defects/${deleteId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
 
     setDeleteId(null);
 
@@ -259,7 +274,6 @@ cursor-pointer
       icon: "🗑️",
     });
   };
-  
 
   return (
     <div className="bg-[#f7f8fc] min-h-screen">

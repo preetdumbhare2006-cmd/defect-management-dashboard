@@ -8,12 +8,14 @@ const COLORS = [
   "#ef4444", // Rejected
 ];
 
-export default function AttentionRequiredChart({ onFilter }){
+export default function AttentionRequiredChart({ onFilter }) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/attention-required")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/attention-required",
+      )
       .then((res) => {
         setData(res.data);
       })

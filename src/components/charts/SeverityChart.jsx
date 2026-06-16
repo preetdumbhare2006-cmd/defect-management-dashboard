@@ -15,7 +15,9 @@ export default function SeverityChart({ onFilter }) {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/charts/severity")
+      .get(
+        "http://https://defect-dashboard-api.onrender.com/api/charts/severity",
+      )
       .then((res) => {
         console.log("Severity Data:", res.data);
         setData(res.data);

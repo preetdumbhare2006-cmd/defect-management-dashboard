@@ -9,20 +9,20 @@ export default function AddDefectModal({
   onClose,
   onSuccess,
 }) {
- const [formData, setFormData] = useState(
-   editingDefect || {
-     title: "",
-     assignee: "",
-     status: "",
-     stage: "",
-     environment: "",
-     severity: "",
-     tag: "",
-     source: "",
-     defectOwner: "",
-     defectRelease: "",
-   },
- );
+  const [formData, setFormData] = useState(
+    editingDefect || {
+      title: "",
+      assignee: "",
+      status: "",
+      stage: "",
+      environment: "",
+      severity: "",
+      tag: "",
+      source: "",
+      defectOwner: "",
+      defectRelease: "",
+    },
+  );
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") {
@@ -40,21 +40,21 @@ export default function AddDefectModal({
   const owners = [...new Set(defects.map((d) => d.defectOwner))];
   const releases = [...new Set(defects.map((d) => d.defectRelease))];
 
- const normalize = (value) => value?.trim().toLowerCase();
+  const normalize = (value) => value?.trim().toLowerCase();
 
- const statuses = [...new Set(defects.map((d) => normalize(d.status)))];
+  const statuses = [...new Set(defects.map((d) => normalize(d.status)))];
 
- const stages = [...new Set(defects.map((d) => normalize(d.stage)))];
+  const stages = [...new Set(defects.map((d) => normalize(d.stage)))];
 
- const environments = [
-   ...new Set(defects.map((d) => normalize(d.environment))),
- ];
+  const environments = [
+    ...new Set(defects.map((d) => normalize(d.environment))),
+  ];
 
- const severities = [...new Set(defects.map((d) => normalize(d.severity)))];
+  const severities = [...new Set(defects.map((d) => normalize(d.severity)))];
 
- const tags = [...new Set(defects.map((d) => normalize(d.tag)))];
+  const tags = [...new Set(defects.map((d) => normalize(d.tag)))];
 
- const sources = [...new Set(defects.map((d) => normalize(d.source)))];
+  const sources = [...new Set(defects.map((d) => normalize(d.source)))];
 
   const handleSubmit = async () => {
     const token = localStorage.getItem("token");
@@ -74,33 +74,35 @@ export default function AddDefectModal({
     }
 
     try {
-     if (editingDefect) {
-       await axios.put(
-         `http://localhost:5000/api/defects/${editingDefect.id}`,
-         formData,
-         {
-           headers: {
-             Authorization: `Bearer ${token}`,
-           },
-         },
-       );
+      if (editingDefect) {
+        await axios.put(
+          `http://https://defect-dashboard-api.onrender.com/api/defects/${editingDefect.id}`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
 
-       toast.success("Defect Updated Successfully", {
-         icon: "✨",
-       });
-     } else {
-       await axios.post("http://localhost:5000/api/defects", formData, {
-         headers: {
-           Authorization: `Bearer ${token}`,
-         },
-       });
+        toast.success("Defect Updated Successfully", {
+          icon: "✨",
+        });
+      } else {
+        await axios.post(
+          "http://https://defect-dashboard-api.onrender.com/api/defects",
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
 
-      toast.success("Defect Added Successfully", {
-        icon: "🚀",
-      });
-     }
-
-     
+        toast.success("Defect Added Successfully", {
+          icon: "🚀",
+        });
+      }
 
       onSuccess();
       onClose();
@@ -110,7 +112,7 @@ export default function AddDefectModal({
     }
   };
 
- const inputClass = `
+  const inputClass = `
   w-full
   border
   border-slate-200
@@ -125,66 +127,66 @@ export default function AddDefectModal({
   transition-all
   duration-300
 `;
-const selectStyles = {
-  control: (provided, state) => ({
-    ...provided,
-    minHeight: "54px",
-    borderRadius: "16px",
-    borderColor: state.isFocused ? "#6366f1" : "#e2e8f0",
-    boxShadow: state.isFocused ? "0 0 0 4px rgba(99,102,241,0.12)" : "none",
-    transition: "all .2s ease",
-    "&:hover": {
-      borderColor: "#6366f1",
-    },
-  }),
+  const selectStyles = {
+    control: (provided, state) => ({
+      ...provided,
+      minHeight: "54px",
+      borderRadius: "16px",
+      borderColor: state.isFocused ? "#6366f1" : "#e2e8f0",
+      boxShadow: state.isFocused ? "0 0 0 4px rgba(99,102,241,0.12)" : "none",
+      transition: "all .2s ease",
+      "&:hover": {
+        borderColor: "#6366f1",
+      },
+    }),
 
-  menu: (provided) => ({
-    ...provided,
-    borderRadius: "16px",
-    overflow: "hidden",
-    zIndex: 9999,
-  }),
+    menu: (provided) => ({
+      ...provided,
+      borderRadius: "16px",
+      overflow: "hidden",
+      zIndex: 9999,
+    }),
 
-  option: (provided, state) => ({
-    ...provided,
-    padding: "12px 16px",
-    backgroundColor: state.isSelected
-      ? "#6366f1"
-      : state.isFocused
-        ? "#eef2ff"
-        : "#fff",
-    color: state.isSelected ? "#fff" : "#1e293b",
-  }),
+    option: (provided, state) => ({
+      ...provided,
+      padding: "12px 16px",
+      backgroundColor: state.isSelected
+        ? "#6366f1"
+        : state.isFocused
+          ? "#eef2ff"
+          : "#fff",
+      color: state.isSelected ? "#fff" : "#1e293b",
+    }),
 
-  option: (base, state) => ({
-    ...base,
-    backgroundColor: state.isSelected
-      ? "#6366f1"
-      : state.isFocused
-        ? "#eef2ff"
-        : "white",
-    color: state.isSelected ? "white" : "#1e293b",
-  }),
-  singleValue: (provided) => ({
-    ...provided,
-    fontWeight: 500,
-  }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isSelected
+        ? "#6366f1"
+        : state.isFocused
+          ? "#eef2ff"
+          : "white",
+      color: state.isSelected ? "white" : "#1e293b",
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      fontWeight: 500,
+    }),
 
-  placeholder: (provided) => ({
-    ...provided,
-    color: "#94a3b8",
-  }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: "#94a3b8",
+    }),
 
-  dropdownIndicator: (provided) => ({
-    ...provided,
-    color: "#6366f1",
-  }),
-  menuList: (provided) => ({
-    ...provided,
-    maxHeight: "200px",
-    overflowY: "auto",
-  }),
-};
+    dropdownIndicator: (provided) => ({
+      ...provided,
+      color: "#6366f1",
+    }),
+    menuList: (provided) => ({
+      ...provided,
+      maxHeight: "200px",
+      overflowY: "auto",
+    }),
+  };
 
   return (
     <div
