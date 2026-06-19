@@ -49,16 +49,17 @@ const loginUser = (req, res) => {
       });
     }
 
-    const token = jwt.sign(
-      {
-        id: user.id,
-        role: user.role,
-      },
-      "secretkey",
-      {
-        expiresIn: "1d",
-      },
-    );
+   const token = jwt.sign(
+     {
+       id: user.id,
+       role: user.role,
+       name: user.name,
+     },
+     "secretkey",
+     {
+       expiresIn: "1d",
+     },
+   );
 
     res.json({
       token,

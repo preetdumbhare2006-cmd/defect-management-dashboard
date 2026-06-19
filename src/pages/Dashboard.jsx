@@ -19,6 +19,9 @@ import { archivedDefects } from "../data/archivedDefectsData";
 import { ChevronDown } from "lucide-react";
 import AddDefectModal from "../components/AddDefectModal";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function Dashboard() {
   const [defects, setDefects] = useState([]);
@@ -54,6 +57,22 @@ export default function Dashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [successMessage, setSuccessMessage] = useState("");
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark",
+  );
+ const [notifications, setNotifications] = useState([]);
+
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
 
   const fetchDefects = () => {
     axios
@@ -66,6 +85,24 @@ export default function Dashboard() {
         setDefects(res.data);
       })
       .catch(console.error);
+  };
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(defects);
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Defects");
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+
+    const fileData = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    saveAs(fileData, "Defect_Report.xlsx");
   };
 
   useEffect(() => {
@@ -190,28 +227,39 @@ export default function Dashboard() {
     return () => el.removeEventListener("scroll", handleScroll);
   }, [showAnalytics]);
 
-  const filterClass = `
+ const filterClass = `
 h-12 w-full px-4
-bg-white/90
+${darkMode ? "bg-neutral-950 text-white border-neutral-800" : "bg-white/90 text-slate-700 border-slate-200"}
 backdrop-blur-sm
-border border-slate-200
+border
 rounded-2xl
-text-sm font-medium text-slate-700
+text-sm font-medium
 outline-none
 hover:border-indigo-300
 hover:shadow-md
 transition-all duration-300
 cursor-pointer
 `;
-  const cleanOptions = (arr) => {
-    return [
-      ...new Set(
-        arr
-          .map((item) => item?.trim())
-          .filter((item) => item && item.length > 0),
-      ),
-    ];
-  };
+const cleanOptions = (arr) => {
+  const uniqueMap = new Map();
+
+  arr.forEach((item) => {
+    const value = item?.trim();
+
+    if (!value) return;
+
+    const normalized = value.toLowerCase();
+
+    if (!uniqueMap.has(normalized)) {
+      uniqueMap.set(
+        normalized,
+        value.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()),
+      );
+    }
+  });
+
+  return [...uniqueMap.values()];
+};
 
   const statusOptions = cleanOptions(defects.map((item) => item.status));
 
@@ -251,6 +299,14 @@ cursor-pointer
         Authorization: `Bearer ${token}`,
       },
     });
+    setNotifications((prev) => [
+      {
+        id: Date.now(),
+        title: `Defect #${deleteId} Deleted`,
+        time: "Just now",
+      },
+      ...prev,
+    ]);
 
     setDeleteId(null);
 
@@ -261,19 +317,33 @@ cursor-pointer
   };
 
   return (
-    <div className="bg-[#f7f8fc] min-h-screen">
-      <Navbar search={search} setSearch={setSearch} />
+    <div
+      className={
+        darkMode
+          ? "bg-black min-h-screen text-white"
+          : "bg-[#f7f8fc] min-h-screen"
+      }
+    >
+      <Navbar
+        search={search}
+        setSearch={setSearch}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        notifications={notifications}
+        showNotifications={showNotifications}
+        setShowNotifications={setShowNotifications}
+      />
 
       <div
-        className="
+        className={`
 mx-2 md:mx-4
 mt-3
-bg-white
+${darkMode ? "bg-neutral-950" : "bg-white"}
 rounded-3xl
 overflow-hidden
 border
-border-gray-100
-"
+${darkMode ? "border-neutral-800" : "border-gray-100"}
+`}
       >
         <DashboardHeader
           defects={defects}
@@ -281,7 +351,10 @@ border-gray-100
           setActiveTab={setActiveTab}
           onAddDefect={() => setShowAddModal(true)}
           user={user}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
         />
+
         <FilterBar
           showAnalytics={showAnalytics}
           setShowAnalytics={setShowAnalytics}
@@ -299,32 +372,33 @@ border-gray-100
           setEnvironmentFilter={setEnvironmentFilter}
           tagFilter={tagFilter}
           setTagFilter={setTagFilter}
+          darkMode={darkMode}
         />
 
         {showFilters && (
           <div
-            className="
+            className={`
 px-4 md:px-8
 py-5
-bg-slate-50
+${darkMode ? "bg-black" : "bg-slate-50"}
 rounded-[28px]
 mx-4 md:mx-8
 mb-6
 border
-border-slate-200
-"
+${darkMode ? "border-neutral-800" : "border-slate-200"}
+`}
           >
             {/* Filter Tags Container */}
             <div className="flex justify-end mb-4">
               <div
-                className="
+                className={`
       flex items-center gap-1.5 flex-wrap
       px-3 py-2
-      bg-white
-      border border-slate-200
+      ${darkMode ? "bg-neutral-950 border-neutral-800" : "bg-white border-slate-200"}
+      border
       rounded-full
       shadow-sm
-    "
+    `}
               >
                 {severityFilter.map((severity) => (
                   <div
@@ -655,16 +729,19 @@ hover:-translate-y-[1px]
 
                   {showStatusDropdown && (
                     <div
-                      className="
+                      className={`
 absolute z-50 mt-3 w-full
-bg-white/95
 backdrop-blur-xl
-border border-slate-200
 rounded-3xl
-shadow-[0_20px_60px_rgba(15,23,42,0.15)]
 overflow-hidden
 animate-in fade-in zoom-in-95
-"
+shadow-[0_20px_60px_rgba(15,23,42,0.15)]
+${
+  darkMode
+    ? "bg-neutral-950 border border-neutral-800"
+    : "bg-white/95 border border-slate-200"
+}
+`}
                     >
                       <div className="max-h-64 overflow-y-auto">
                         {statusOptions.map((status) => {
@@ -686,7 +763,12 @@ animate-in fade-in zoom-in-95
                                   setStatusFilter([...statusFilter, status]);
                                 }
                               }}
-                              className="flex items-center justify-between px-5 py-4 hover:bg-slate-50 cursor-pointer transition"
+                              className={`flex items-center justify-between px-5 py-4 cursor-pointer transition
+${
+  darkMode
+    ? "hover:bg-neutral-800 text-neutral-200"
+    : "hover:bg-slate-50 text-slate-700"
+}`}
                             >
                               <div className="flex items-center gap-3">
                                 <div
@@ -694,7 +776,9 @@ animate-in fade-in zoom-in-95
                 ${
                   statusFilter.includes(status)
                     ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                    : "border-slate-300"
+                    : darkMode
+                      ? "border-neutral-700"
+                      : "border-slate-300"
                 }`}
                                 >
                                   {statusFilter.includes(status) && "✓"}
@@ -703,7 +787,13 @@ animate-in fade-in zoom-in-95
                                 <span>{status}</span>
                               </div>
 
-                              <span className="text-slate-400 text-sm">
+                              <span
+                                className={`text-sm ${
+                                  darkMode
+                                    ? "text-neutral-300"
+                                    : "text-slate-400"
+                                }`}
+                              >
                                 {count}
                               </span>
                             </label>
@@ -740,16 +830,19 @@ hover:-translate-y-[1px]
 
                   {showEnvironmentDropdown && (
                     <div
-                      className="
+                      className={`
 absolute z-50 mt-3 w-full
-bg-white/95
 backdrop-blur-xl
-border border-slate-200
 rounded-3xl
-shadow-[0_20px_60px_rgba(15,23,42,0.15)]
 overflow-hidden
 animate-in fade-in zoom-in-95
-"
+shadow-[0_20px_60px_rgba(15,23,42,0.15)]
+${
+  darkMode
+    ? "bg-neutral-950 border border-neutral-800"
+    : "bg-white/95 border border-slate-200"
+}
+`}
                     >
                       <div className="max-h-64 overflow-y-auto">
                         {environmentOptions.map((env) => {
@@ -774,7 +867,12 @@ animate-in fade-in zoom-in-95
                                   ]);
                                 }
                               }}
-                              className="flex items-center justify-between px-5 py-4 hover:bg-slate-50 cursor-pointer transition"
+                              className={`flex items-center justify-between px-5 py-4 cursor-pointer transition
+${
+  darkMode
+    ? "hover:bg-neutral-800 text-neutral-200"
+    : "hover:bg-slate-50 text-slate-700"
+}`}
                             >
                               <div className="flex items-center gap-3">
                                 <div
@@ -782,7 +880,9 @@ animate-in fade-in zoom-in-95
                 ${
                   environmentFilter.includes(env)
                     ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                    : "border-slate-300"
+                    : darkMode
+                      ? "border-neutral-700"
+                      : "border-slate-300"
                 }`}
                                 >
                                   {environmentFilter.includes(env) && "✓"}
@@ -791,7 +891,13 @@ animate-in fade-in zoom-in-95
                                 <span>{env}</span>
                               </div>
 
-                              <span className="text-slate-400 text-sm">
+                              <span
+                                className={`text-sm ${
+                                  darkMode
+                                    ? "text-neutral-300"
+                                    : "text-slate-400"
+                                }`}
+                              >
                                 {count}
                               </span>
                             </label>
@@ -828,16 +934,19 @@ hover:-translate-y-[1px]
 
                   {showSeverityDropdown && (
                     <div
-                      className="
+                      className={`
 absolute z-50 mt-3 w-full
-bg-white/95
 backdrop-blur-xl
-border border-slate-200
 rounded-3xl
-shadow-[0_20px_60px_rgba(15,23,42,0.15)]
 overflow-hidden
 animate-in fade-in zoom-in-95
-"
+shadow-[0_20px_60px_rgba(15,23,42,0.15)]
+${
+  darkMode
+    ? "bg-neutral-950 border border-neutral-800"
+    : "bg-white/95 border border-slate-200"
+}
+`}
                     >
                       <div className="max-h-64 overflow-y-auto">
                         {severityOptions.map((severity) => {
@@ -862,7 +971,12 @@ animate-in fade-in zoom-in-95
                                   ]);
                                 }
                               }}
-                              className="flex items-center justify-between px-5 py-4 hover:bg-slate-50 cursor-pointer transition"
+                              className={`flex items-center justify-between px-5 py-4 cursor-pointer transition
+${
+  darkMode
+    ? "hover:bg-neutral-800 text-neutral-200"
+    : "hover:bg-slate-50 text-slate-700"
+}`}
                             >
                               <div className="flex items-center gap-3">
                                 <div
@@ -870,7 +984,9 @@ animate-in fade-in zoom-in-95
                 ${
                   severityFilter.includes(severity)
                     ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                    : "border-slate-300"
+                    : darkMode
+                      ? "border-neutral-700"
+                      : "border-slate-300"
                 }`}
                                 >
                                   {severityFilter.includes(severity) && "✓"}
@@ -878,8 +994,13 @@ animate-in fade-in zoom-in-95
 
                                 <span>{severity}</span>
                               </div>
-
-                              <span className="text-slate-400 text-sm">
+                              <span
+                                className={`text-sm ${
+                                  darkMode
+                                    ? "text-neutral-300"
+                                    : "text-slate-400"
+                                }`}
+                              >
                                 {count}
                               </span>
                             </label>
@@ -913,16 +1034,19 @@ hover:-translate-y-[1px]
 
                   {showStageDropdown && (
                     <div
-                      className="
+                      className={`
 absolute z-50 mt-3 w-full
-bg-white/95
 backdrop-blur-xl
-border border-slate-200
 rounded-3xl
-shadow-[0_20px_60px_rgba(15,23,42,0.15)]
 overflow-hidden
 animate-in fade-in zoom-in-95
-"
+shadow-[0_20px_60px_rgba(15,23,42,0.15)]
+${
+  darkMode
+    ? "bg-neutral-950 border border-neutral-800"
+    : "bg-white/95 border border-slate-200"
+}
+`}
                     >
                       <div className="max-h-64 overflow-y-auto">
                         {stageOptions.map((stage) => {
@@ -944,7 +1068,12 @@ animate-in fade-in zoom-in-95
                                   setStageFilter([...stageFilter, stage]);
                                 }
                               }}
-                              className="flex items-center justify-between px-5 py-4 hover:bg-slate-50 cursor-pointer transition"
+                              className={`flex items-center justify-between px-5 py-4 cursor-pointer transition
+${
+  darkMode
+    ? "hover:bg-neutral-800 text-neutral-200"
+    : "hover:bg-slate-50 text-slate-700"
+}`}
                             >
                               <div className="flex items-center gap-3">
                                 <div
@@ -952,7 +1081,9 @@ animate-in fade-in zoom-in-95
                 ${
                   stageFilter.includes(stage)
                     ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                    : "border-slate-300"
+                    : darkMode
+                      ? "border-neutral-700"
+                      : "border-slate-300"
                 }`}
                                 >
                                   {stageFilter.includes(stage) && "✓"}
@@ -961,7 +1092,13 @@ animate-in fade-in zoom-in-95
                                 <span>{stage}</span>
                               </div>
 
-                              <span className="text-slate-400 text-sm">
+                              <span
+                                className={`text-sm ${
+                                  darkMode
+                                    ? "text-neutral-300"
+                                    : "text-slate-400"
+                                }`}
+                              >
                                 {count}
                               </span>
                             </label>
@@ -995,16 +1132,19 @@ hover:-translate-y-[1px]
 
                   {showTagDropdown && (
                     <div
-                      className="
+                      className={`
 absolute z-50 mt-3 w-full
-bg-white/95
 backdrop-blur-xl
-border border-slate-200
 rounded-3xl
-shadow-[0_20px_60px_rgba(15,23,42,0.15)]
 overflow-hidden
 animate-in fade-in zoom-in-95
-"
+shadow-[0_20px_60px_rgba(15,23,42,0.15)]
+${
+  darkMode
+    ? "bg-neutral-950 border border-neutral-800"
+    : "bg-white/95 border border-slate-200"
+}
+`}
                     >
                       <div className="max-h-64 overflow-y-auto">
                         {tagOptions.map((tag) => {
@@ -1024,7 +1164,12 @@ animate-in fade-in zoom-in-95
                                   setTagFilter([...tagFilter, tag]);
                                 }
                               }}
-                              className="flex items-center justify-between px-5 py-4 hover:bg-slate-50 cursor-pointer transition"
+                              className={`flex items-center justify-between px-5 py-4 cursor-pointer transition
+${
+  darkMode
+    ? "hover:bg-neutral-800 text-neutral-200"
+    : "hover:bg-slate-50 text-slate-700"
+}`}
                             >
                               <div className="flex items-center gap-3">
                                 <div
@@ -1032,7 +1177,9 @@ animate-in fade-in zoom-in-95
                 ${
                   tagFilter.includes(tag)
                     ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                    : "border-slate-300"
+                    : darkMode
+                      ? "border-neutral-700"
+                      : "border-slate-300"
                 }`}
                                 >
                                   {tagFilter.includes(tag) && "✓"}
@@ -1041,7 +1188,13 @@ animate-in fade-in zoom-in-95
                                 <span>{tag}</span>
                               </div>
 
-                              <span className="text-slate-400 text-sm">
+                              <span
+                                className={`text-sm ${
+                                  darkMode
+                                    ? "text-neutral-300"
+                                    : "text-slate-400"
+                                }`}
+                              >
                                 {count}
                               </span>
                             </label>
@@ -1090,16 +1243,19 @@ hover:-translate-y-[1px]
 
                   {showAssigneeDropdown && (
                     <div
-                      className="
+                      className={`
 absolute z-50 mt-3 w-full
-bg-white/95
 backdrop-blur-xl
-border border-slate-200
 rounded-3xl
-shadow-[0_20px_60px_rgba(15,23,42,0.15)]
 overflow-hidden
 animate-in fade-in zoom-in-95
-"
+shadow-[0_20px_60px_rgba(15,23,42,0.15)]
+${
+  darkMode
+    ? "bg-neutral-950 border border-neutral-800"
+    : "bg-white/95 border border-slate-200"
+}
+`}
                     >
                       <div className="max-h-64 overflow-y-auto">
                         {assigneeOptions.map((assignee) => {
@@ -1124,7 +1280,12 @@ animate-in fade-in zoom-in-95
                                   ]);
                                 }
                               }}
-                              className="flex items-center justify-between px-5 py-4 hover:bg-slate-50 cursor-pointer transition"
+                              className={`flex items-center justify-between px-5 py-4 cursor-pointer transition
+${
+  darkMode
+    ? "hover:bg-neutral-800 text-neutral-200"
+    : "hover:bg-slate-50 text-slate-700"
+}`}
                             >
                               <div className="flex items-center gap-3">
                                 <div
@@ -1132,7 +1293,9 @@ animate-in fade-in zoom-in-95
                 ${
                   assigneeFilter.includes(assignee)
                     ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                    : "border-slate-300"
+                    : darkMode
+                      ? "border-neutral-700"
+                      : "border-slate-300"
                 }`}
                                 >
                                   {assigneeFilter.includes(assignee) && "✓"}
@@ -1141,7 +1304,13 @@ animate-in fade-in zoom-in-95
                                 <span>{assignee}</span>
                               </div>
 
-                              <span className="text-slate-400 text-sm">
+                              <span
+                                className={`text-sm ${
+                                  darkMode
+                                    ? "text-neutral-300"
+                                    : "text-slate-400"
+                                }`}
+                              >
                                 {count}
                               </span>
                             </label>
@@ -1175,16 +1344,19 @@ hover:-translate-y-[1px]
 
                   {showOwnerDropdown && (
                     <div
-                      className="
+                      className={`
 absolute z-50 mt-3 w-full
-bg-white/95
 backdrop-blur-xl
-border border-slate-200
 rounded-3xl
-shadow-[0_20px_60px_rgba(15,23,42,0.15)]
 overflow-hidden
 animate-in fade-in zoom-in-95
-"
+shadow-[0_20px_60px_rgba(15,23,42,0.15)]
+${
+  darkMode
+    ? "bg-neutral-950 border border-neutral-800"
+    : "bg-white/95 border border-slate-200"
+}
+`}
                     >
                       <div className="max-h-64 overflow-y-auto">
                         {defectOwnerOptions.map((owner) => {
@@ -1225,7 +1397,9 @@ transition-all duration-200
                 ${
                   defectOwnerFilter.includes(owner)
                     ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                    : "border-slate-300"
+                    : darkMode
+                      ? "border-neutral-700"
+                      : "border-slate-300"
                 }`}
                                 >
                                   {defectOwnerFilter.includes(owner) && "✓"}
@@ -1234,7 +1408,13 @@ transition-all duration-200
                                 <span>{owner}</span>
                               </div>
 
-                              <span className="text-slate-400 text-sm">
+                              <span
+                                className={`text-sm ${
+                                  darkMode
+                                    ? "text-neutral-300"
+                                    : "text-slate-400"
+                                }`}
+                              >
                                 {count}
                               </span>
                             </label>
@@ -1268,7 +1448,19 @@ hover:-translate-y-[1px]
                   </button>
 
                   {showSourceDropdown && (
-                    <div className="absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                    <div
+                      className={`
+absolute z-50 mt-2 w-full
+rounded-2xl
+shadow-xl
+overflow-hidden
+${
+  darkMode
+    ? "bg-neutral-950 border border-neutral-800"
+    : "bg-white border border-slate-200"
+}
+`}
+                    >
                       <div className="max-h-64 overflow-y-auto">
                         {sourceOptions.map((source) => {
                           const count = defects.filter(
@@ -1305,7 +1497,9 @@ transition-all duration-200
                     ${
                       sourceFilter.includes(source)
                         ? "bg-indigo-600 border-indigo-600 text-white shadow-md"
-                        : "border-slate-300"
+                        : darkMode
+                          ? "border-neutral-700"
+                          : "border-slate-300"
                     }`}
                                 >
                                   {sourceFilter.includes(source) && "✓"}
@@ -1314,7 +1508,13 @@ transition-all duration-200
                                 <span>{source}</span>
                               </div>
 
-                              <span className="text-slate-400 text-sm">
+                              <span
+                                className={`text-sm ${
+                                  darkMode
+                                    ? "text-neutral-300"
+                                    : "text-slate-400"
+                                }`}
+                              >
                                 {count}
                               </span>
                             </label>
@@ -1336,59 +1536,146 @@ px-4 md:px-8
 pb-8
 pt-2
 "
-          >
-            {showLeftArrow && (
-              <button
-                onClick={() =>
-                  chartRef.current.scrollBy({ left: -500, behavior: "smooth" })
-                }
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white shadow-lg border border-slate-200 hover:scale-105 transition"
-              >
-                ←
-              </button>
-            )}
-            {showRightArrow && (
-              <button
-                onClick={() =>
-                  chartRef.current.scrollBy({ left: 500, behavior: "smooth" })
-                }
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-white shadow-lg border border-slate-200 hover:scale-105 transition"
-              >
-                →
-              </button>
-            )}
+          >{showLeftArrow && (
+  <button
+    onClick={() =>
+      chartRef.current.scrollBy({ left: -500, behavior: "smooth" })
+    }
+    className={`
+absolute
+left-2
+top-1/2
+-translate-y-1/2
+z-20
+w-12
+h-12
+rounded-full
+flex
+items-center
+justify-center
+shadow-lg
+border
+transition-all
+duration-300
+hover:scale-110
+${
+  darkMode
+    ? "bg-neutral-900 border-neutral-700 text-neutral-200"
+    : "bg-white border-slate-200 text-slate-700"
+}
+`}
+  >
+    <span className="text-xl font-bold">‹</span>
+  </button>
+)}
+
+{showRightArrow && (
+  <button
+    onClick={() =>
+      chartRef.current.scrollBy({ left: 500, behavior: "smooth" })
+    }
+    className={`
+absolute
+right-2
+top-1/2
+-translate-y-1/2
+z-20
+w-12
+h-12
+rounded-full
+flex
+items-center
+justify-center
+shadow-lg
+border
+transition-all
+duration-300
+hover:scale-110
+${
+  darkMode
+    ? "bg-neutral-900 border-neutral-700 text-neutral-200"
+    : "bg-white border-slate-200 text-slate-700"
+}
+`}
+  >
+    <span className="text-xl font-bold">›</span>
+  </button>
+)}
             <div
               ref={chartRef}
-              className="flex gap-6 overflow-x-auto scroll-smooth no-scrollbar pb-2"
+              className={`
+flex
+gap-6
+overflow-x-auto
+scroll-smooth
+dashboard-scroll
+pb-2
+
+${
+  darkMode
+    ? `
+      scrollbar-thin
+      scrollbar-track-neutral-900
+      scrollbar-thumb-neutral-700
+      hover:scrollbar-thumb-neutral-600
+    `
+    : `
+      scrollbar-thin
+      scrollbar-track-slate-100
+      scrollbar-thumb-slate-300
+      hover:scrollbar-thumb-slate-400
+    `
+}
+`}
             >
               <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
-                <ChartCard title="Severity" footerData={severityData}>
+                <ChartCard
+                  title="Severity"
+                  footerData={severityData}
+                  darkMode={darkMode}
+                >
                   <SeverityChart
                     onFilter={(value) => applyChartFilter("severity", value)}
                   />
                 </ChartCard>
               </div>
               <div className="w-[280px] sm:w-[320px] md:w-[420px]flex-shrink-0">
-                <ChartCard title="Aging" footerData={agingData}>
+                <ChartCard
+                  title="Aging"
+                  footerData={agingData}
+                  darkMode={darkMode}
+                >
                   <AgingChart />
                 </ChartCard>
               </div>
               <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
-                <ChartCard title="Defect Source" footerData={sourceData}>
+                <ChartCard
+                  title="Defect Source"
+                  footerData={sourceData}
+                  darkMode={darkMode}
+                >
                   <DefectSourceChart
                     onFilter={(value) => applyChartFilter("source", value)}
                   />
                 </ChartCard>
               </div>
               <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
-                <ChartCard title="Tags" footerData={tagsData}>
+                <ChartCard
+                  title="Tags"
+                  footerData={tagsData}
+                  darkMode={darkMode}
+                >
                   <TagsChart
                     onFilter={(value) => applyChartFilter("tag", value)}
                   />
                 </ChartCard>
               </div>
               <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
-                <ChartCard title="Workflow Pulse" footerData={workflowData}>
+                <ChartCard
+                  title="Workflow Pulse"
+                  footerData={workflowData}
+                  darkMode={darkMode}
+                >
                   <WorkFlowPulseChart
                     onFilter={(value) => toggleFilter(setStageFilter, value)}
                   />
@@ -1398,6 +1685,7 @@ pt-2
                 <ChartCard
                   title="Attention Required"
                   footerData={attentionData}
+                  darkMode={darkMode}
                 >
                   <AttentionRequiredChart
                     onFilter={(value) => toggleFilter(setSeverityFilter, value)}
@@ -1405,14 +1693,22 @@ pt-2
                 </ChartCard>
               </div>
               <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
-                <ChartCard title="Environment" footerData={environmentData}>
+                <ChartCard
+                  title="Environment"
+                  footerData={environmentData}
+                  darkMode={darkMode}
+                >
                   <EnvironmentChart
                     onFilter={(value) => applyChartFilter("environment", value)}
                   />
                 </ChartCard>
               </div>
               <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
-                <ChartCard title="Assigned To" footerData={assignedData}>
+                <ChartCard
+                  title="Assigned To"
+                  footerData={assignedData}
+                  darkMode={darkMode}
+                >
                   <AssignedToChart
                     onFilter={(value) => {
                       console.log("FROM DASHBOARD:", value);
@@ -1423,7 +1719,11 @@ pt-2
                 </ChartCard>
               </div>
               <div className="w-[280px] sm:w-[320px] md:w-[420px] flex-shrink-0">
-                <ChartCard title="Added By" footerData={addedByData}>
+                <ChartCard
+                  title="Added By"
+                  footerData={addedByData}
+                  darkMode={darkMode}
+                >
                   <AddedByChart
                     onFilter={(value) =>
                       toggleFilter(setDefectOwnerFilter, value)
@@ -1453,12 +1753,15 @@ pt-2
           sourceFilter={sourceFilter}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          darkMode={darkMode}
         />
       </div>
       {showAddModal && (
         <AddDefectModal
           defects={defects}
           editingDefect={editingDefect}
+          darkMode={darkMode}
+          setNotifications={setNotifications}
           onClose={() => {
             setShowAddModal(false);
             setEditingDefect(null);
@@ -1489,14 +1792,12 @@ pt-2
             <div className="flex gap-3 mt-8">
               <button
                 onClick={() => setDeleteId(null)}
-                className="
-            flex-1
-            py-3
-            rounded-xl
-            border
-            border-slate-300
-            hover:bg-slate-50
-          "
+                className={`flex items-center justify-between px-5 py-4 cursor-pointer transition
+${
+  darkMode
+    ? "hover:bg-neutral-800 text-neutral-200"
+    : "hover:bg-slate-50 text-slate-700"
+}`}
               >
                 Cancel
               </button>

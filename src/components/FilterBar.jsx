@@ -4,8 +4,8 @@ export default function FilterBar({
   setShowAnalytics,
   showFilters,
   setShowFilters,
+  darkMode,
 }) {
-  
   const filterRef = useRef(null);
   useEffect(() => {
     function handleClickOutside(event) {
@@ -22,9 +22,9 @@ export default function FilterBar({
   }, []);
   return (
     <div
-      className="
+      className={`
 border-t
-border-gray-100
+${darkMode ? "border-neutral-800" : "border-gray-100"}
 px-4
 md:px-8
 py-3
@@ -35,7 +35,7 @@ gap-3
 justify-between
 items-start
 sm:items-center
-"
+`}
     >
       <div
         className="
@@ -51,15 +51,21 @@ sm:w-auto
           onClick={() => setShowAnalytics(!showAnalytics)}
           className={`
     w-full
-sm:w-auto
-px-6
-py-3 rounded-full font-medium transition
+    sm:w-auto
+    px-6
+    py-3
+    rounded-full
+    font-medium
+    transition-all
+    duration-300
     ${
       showAnalytics
-        ? "border border-indigo-500 bg-indigo-50 text-indigo-600"
-        : "border border-gray-200 bg-white"
+        ? "border border-indigo-500 bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+        : darkMode
+          ? "border border-neutral-700 bg-neutral-900 text-neutral-200"
+          : "border border-gray-200 bg-white text-slate-700"
     }
-  `}
+`}
         >
           📊 Visual Analytics
         </button>
@@ -68,15 +74,21 @@ py-3 rounded-full font-medium transition
           onClick={() => setShowFilters(!showFilters)}
           className={`
     w-full
-sm:w-auto
-px-6
-py-3 rounded-full font-medium transition
+    sm:w-auto
+    px-6
+    py-3
+    rounded-full
+    font-medium
+    transition-all
+    duration-300
     ${
       showFilters
-        ? "border border-indigo-500 bg-indigo-50 text-indigo-600"
-        : "border border-gray-200 bg-white"
+        ? "border border-indigo-500 bg-indigo-600 text-white shadow-lg shadow-indigo-500/20"
+        : darkMode
+          ? "border border-neutral-700 bg-neutral-900 text-neutral-200"
+          : "border border-gray-200 bg-white text-slate-700"
     }
-  `}
+`}
         >
           🔍 Advanced Filters
         </button>

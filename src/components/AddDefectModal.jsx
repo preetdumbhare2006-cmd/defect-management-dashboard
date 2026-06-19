@@ -8,6 +8,8 @@ export default function AddDefectModal({
   editingDefect,
   onClose,
   onSuccess,
+  darkMode,
+  setNotifications,
 }) {
   const [formData, setFormData] = useState(
     editingDefect || {
@@ -21,6 +23,7 @@ export default function AddDefectModal({
       source: "",
       defectOwner: "",
       defectRelease: "",
+      description: "",
     },
   );
   useEffect(() => {
@@ -76,7 +79,7 @@ export default function AddDefectModal({
     try {
       if (editingDefect) {
         await axios.put(
-          `http://http://localhost:5000/api/defects/${editingDefect.id}`,
+          `http://localhost:5000/api/defects/${editingDefect.id}`,
           formData,
           {
             headers: {
@@ -84,7 +87,14 @@ export default function AddDefectModal({
             },
           },
         );
-
+        setNotifications((prev) => [
+          {
+            id: Date.now(),
+            title: `Defect #${editingDefect.id} Updated`,
+            time: "Just now",
+          },
+          ...prev,
+        ]);
         toast.success("Defect Updated Successfully", {
           icon: "✨",
         });
@@ -94,6 +104,14 @@ export default function AddDefectModal({
             Authorization: `Bearer ${token}`,
           },
         });
+        setNotifications((prev) => [
+          {
+            id: Date.now(),
+            title: `New Defect Created`,
+            time: "Just now",
+          },
+          ...prev,
+        ]);
 
         toast.success("Defect Added Successfully", {
           icon: "🚀",
@@ -107,19 +125,97 @@ export default function AddDefectModal({
       toast.error("Operation Failed");
     }
   };
+  const generateDescription = () => {
+    const title = formData.title.toLowerCase();
 
-  const inputClass = `
+    let generatedText = "";
+
+    if (title.includes("login")) {
+      generatedText = `
+Steps To Reproduce:
+1. Open Login Page
+2. Enter valid credentials
+3. Click Login button
+
+Expected Result:
+User should login successfully.
+
+Actual Result:
+Login process fails and displays an error.
+`;
+    } else if (title.includes("payment")) {
+      generatedText = `
+Steps To Reproduce:
+1. Open Payment Page
+2. Enter payment details
+3. Click Pay
+
+Expected Result:
+Payment should be completed successfully.
+
+Actual Result:
+Transaction fails unexpectedly.
+`;
+    } else if (title.includes("registration")) {
+      generatedText = `
+Steps To Reproduce:
+1. Open Registration Page
+2. Fill user details
+3. Click Register
+
+Expected Result:
+Account should be created.
+
+Actual Result:
+Registration process fails.
+`;
+    } else if (title.includes("dashboard")) {
+      generatedText = `
+Steps To Reproduce:
+1. Login to application
+2. Navigate to Dashboard
+
+Expected Result:
+Dashboard should load correctly.
+
+Actual Result:
+Dashboard data is not loading properly.
+`;
+    } else {
+      generatedText = `
+Steps To Reproduce:
+1. Open Application
+2. Perform the affected action
+
+Expected Result:
+Application should work as expected.
+
+Actual Result:
+Unexpected behavior observed.
+`;
+    }
+
+    setFormData({
+      ...formData,
+      description: generatedText,
+    });
+
+    toast.success("AI Description Generated ✨");
+  };
+ const inputClass = `
   w-full
   border
-  border-slate-200
-  bg-slate-50
+  ${
+    darkMode
+      ? "border-neutral-800 bg-neutral-950 text-white"
+      : "border-slate-200 bg-slate-50 text-slate-800"
+  }
   px-4
   py-3
   rounded-2xl
   focus:outline-none
   focus:ring-2
   focus:ring-indigo-500
-  focus:bg-white
   transition-all
   duration-300
 `;
@@ -128,49 +224,46 @@ export default function AddDefectModal({
       ...provided,
       minHeight: "54px",
       borderRadius: "16px",
-      borderColor: state.isFocused ? "#6366f1" : "#e2e8f0",
+      backgroundColor: darkMode ? "#0a0a0a" : "#ffffff",
+      color: darkMode ? "#ffffff" : "#1e293b",
+      borderColor: darkMode ? "#262626" : "#e2e8f0",
       boxShadow: state.isFocused ? "0 0 0 4px rgba(99,102,241,0.12)" : "none",
-      transition: "all .2s ease",
-      "&:hover": {
-        borderColor: "#6366f1",
-      },
     }),
 
     menu: (provided) => ({
       ...provided,
+      backgroundColor: darkMode ? "#0a0a0a" : "#ffffff",
       borderRadius: "16px",
       overflow: "hidden",
       zIndex: 9999,
     }),
 
-    option: (provided, state) => ({
-      ...provided,
-      padding: "12px 16px",
-      backgroundColor: state.isSelected
-        ? "#6366f1"
-        : state.isFocused
-          ? "#eef2ff"
-          : "#fff",
-      color: state.isSelected ? "#fff" : "#1e293b",
-    }),
+   
 
     option: (base, state) => ({
       ...base,
       backgroundColor: state.isSelected
         ? "#6366f1"
         : state.isFocused
-          ? "#eef2ff"
-          : "white",
-      color: state.isSelected ? "white" : "#1e293b",
+          ? darkMode
+            ? "#262626"
+            : "#eef2ff"
+          : darkMode
+            ? "#0a0a0a"
+            : "#ffffff",
+
+      color: state.isSelected ? "#ffffff" : darkMode ? "#ffffff" : "#1e293b",
+
+      cursor: "pointer",
     }),
     singleValue: (provided) => ({
       ...provided,
+      color: darkMode ? "#ffffff" : "#1e293b",
       fontWeight: 500,
     }),
-
     placeholder: (provided) => ({
       ...provided,
-      color: "#94a3b8",
+      color: darkMode ? "#94a3b8" : "#94a3b8",
     }),
 
     dropdownIndicator: (provided) => ({
@@ -190,8 +283,8 @@ export default function AddDefectModal({
       onClick={onClose}
     >
       <div
-        className="
- bg-white
+        className={`
+  ${darkMode ? "bg-black text-white" : "bg-white"}
   p-10
   rounded-[32px]
   w-[95%]
@@ -200,11 +293,17 @@ export default function AddDefectModal({
   overflow-y-auto
   shadow-[0_20px_60px_rgba(0,0,0,0.15)]
   animate-[fadeIn_.25s_ease]
-"
+`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-8 border-b pb-5">
-          <div className="flex items-center justify-between mb-8 border-b pb-6">
+        <div
+          className={`mb-8 border-b pb-5 ${darkMode ? "border-neutral-800" : ""}`}
+        >
+          <div
+            className={`flex items-center justify-between mb-8 border-b pb-6 ${
+              darkMode ? "border-neutral-800" : ""
+            }`}
+          >
             <div className="flex items-center gap-4">
               <div
                 className="
@@ -225,11 +324,19 @@ export default function AddDefectModal({
               </div>
 
               <div>
-                <h2 className="text-3xl font-bold text-slate-800">
+                <h2
+                  className={`text-3xl font-bold ${
+                    darkMode ? "text-white" : "text-slate-800"
+                  }`}
+                >
                   {editingDefect ? "Edit Defect" : "Add New Defect"}
                 </h2>
 
-                <p className="text-slate-500 mt-1">
+                <p
+                  className={`mt-1 ${
+                    darkMode ? "text-slate-400" : "text-slate-500"
+                  }`}
+                >
                   Create and manage defect records
                 </p>
               </div>
@@ -504,20 +611,55 @@ export default function AddDefectModal({
             />
           </div>
         </div>
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-2">
+            <label className="font-medium">Defect Description</label>
 
+            <button
+              onClick={generateDescription}
+              className="
+      bg-violet-600
+      text-white
+      px-4
+      py-2
+      rounded-xl
+      text-sm
+      hover:bg-violet-700
+      transition
+      "
+            >
+              ✨ Generate Description
+            </button>
+          </div>
+
+          <textarea
+            rows={10}
+            className={inputClass}
+            value={formData.description}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                description: e.target.value,
+              })
+            }
+          />
+        </div>
         <div className="flex justify-end gap-3 mt-8">
           <button
             onClick={onClose}
-            className="
+            className={`
 px-6
 py-3
 rounded-2xl
 border
-border-slate-300
 font-medium
-hover:bg-slate-50
 transition-all
-"
+${
+  darkMode
+    ? "border-neutral-800 bg-neutral-950 text-white hover:bg-neutral-900"
+    : "border-slate-300 hover:bg-slate-50"
+}
+`}
           >
             Cancel
           </button>
@@ -533,10 +675,9 @@ from-indigo-600
 to-violet-600
 text-white
 font-semibold
-shadow-xl
-shadow-indigo-200
+shadow-[0_8px_25px_rgba(99,102,241,0.25)]
+hover:shadow-[0_12px_35px_rgba(99,102,241,0.35)]
 hover:scale-105
-hover:shadow-2xl
 transition-all
 duration-300
 "

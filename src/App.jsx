@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import AuditLogs from "./pages/AuditLogs";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -18,6 +19,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/audit"
+          element={
+            <ProtectedRoute>
+              <AuditLogs/>
             </ProtectedRoute>
           }
         />

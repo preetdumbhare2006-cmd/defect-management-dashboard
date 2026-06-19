@@ -17,17 +17,33 @@ body {
   background: #cbd5e1;
   border-radius: 999px;
 }
+/* Professional Website Scrollbar */
+
 ::-webkit-scrollbar {
-  height: 2px;
+  width: 8px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #0f172a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: linear-gradient(
+    180deg,
+    #475569,
+    #334155
+  );
   border-radius: 999px;
+  border: 2px solid #0f172a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    #64748b,
+    #475569
+  );
 }
 @keyframes fadeIn {
   from {
@@ -39,4 +55,49 @@ body {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+.dark body {
+  background: #050505;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.footer-scroll::-webkit-scrollbar {
+  height: 2px !important;
+}
+
+.footer-scroll::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.footer-scroll::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.4) !important;
+  border-radius: 999px;
+}
+
+.footer-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.7) !important;
+}
+/* Dashboard Chart Scrollbar */
+
+.dashboard-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.dashboard-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-scroll::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.35);
+  border-radius: 999px;
+}
+
+.dashboard-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.7);
 }

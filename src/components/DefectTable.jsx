@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
-import { Pencil, Trash2, Funnel } from "lucide-react";
+import { Clock3, Pencil, Trash2, Funnel } from "lucide-react";
+import axios from "axios";
 
 export default function DefectTable({
   data,
@@ -20,6 +21,7 @@ export default function DefectTable({
 
   onEdit,
   onDelete,
+  darkMode,
 }) {
   const user = JSON.parse(localStorage.getItem("user"));
   const [sortAsc, setSortAsc] = useState(true);
@@ -27,7 +29,8 @@ export default function DefectTable({
   const [currentPage, setCurrentPage] = useState(1);
 
   const [selectedDefect, setSelectedDefect] = useState(null);
-
+  const [historyLogs, setHistoryLogs] = useState([]);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [showRowsDropdown, setShowRowsDropdown] = useState(false);
 
@@ -63,15 +66,132 @@ export default function DefectTable({
 
   const [showSourceDropdownInline, setShowSourceDropdownInline] =
     useState(false);
-  const statusOptions = [...new Set(data.map((item) => item.status))];
+  const statusOptions = [
+    ...new Set(
+      data
+        .map((item) => item.status?.trim())
+        .filter(Boolean)
+        .map((x) => x.toLowerCase()),
+    ),
+  ].map((x) => x.charAt(0).toUpperCase() + x.slice(1));
 
-  const stageOptions = [...new Set(data.map((item) => item.stage))];
+  const stageOptions = [
+    ...new Set(
+      data
+        .map((item) => item.stage?.trim())
+        .filter(Boolean)
+        .map((x) => x.toLowerCase()),
+    ),
+  ].map((x) => x.charAt(0).toUpperCase() + x.slice(1));
 
-  const severityOptions = [...new Set(data.map((item) => item.severity))];
+  const severityOptions = [
+    ...new Set(
+      data
+        .map((item) => item.severity?.trim())
+        .filter(Boolean)
+        .map((x) => x.toLowerCase()),
+    ),
+  ].map((x) =>
+    x
+      .split(" ")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" "),
+  );
 
-  const tagOptions = [...new Set(data.map((item) => item.tag))];
+  const tagOptions = [
+    ...new Set(
+      data
+        .map((item) => item.tag?.trim())
+        .filter(Boolean)
+        .map((x) => x.toUpperCase()),
+    ),
+  ];
 
-  const sourceOptions = [...new Set(data.map((item) => item.source))];
+  const sourceOptions = [
+    ...new Set(
+      data
+        .map((item) => item.source?.trim())
+        .filter(Boolean)
+        .map((x) => x.toUpperCase()),
+    ),
+  ];
+  const filterInputClass = `
+w-full
+h-11
+px-4
+border
+rounded-2xl
+text-sm
+font-medium
+shadow-sm
+outline-none
+transition-all
+duration-200
+${
+  darkMode
+    ? "bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500"
+    : "bg-white border-slate-200 text-slate-700 placeholder:text-slate-400"
+}
+`;
+
+  const filterDropdownButtonClass = `
+w-full
+h-11
+px-4
+border
+rounded-2xl
+text-sm
+font-medium
+shadow-sm
+flex
+items-center
+justify-between
+transition-all
+${
+  darkMode
+    ? "bg-neutral-900 border-neutral-700 text-white"
+    : "bg-white border-slate-200 text-slate-700"
+}
+`;
+
+  const filterDropdownClass = `
+absolute
+z-[9999]
+mt-2
+w-full
+rounded-2xl
+shadow-xl
+overflow-hidden
+border
+${darkMode ? "bg-neutral-900 border-neutral-700" : "bg-white border-slate-200"}
+`;
+
+  const filterOptionClass = `
+flex
+items-center
+justify-between
+px-4
+py-3
+cursor-pointer
+transition
+${
+  darkMode
+    ? "hover:bg-neutral-800 text-white"
+    : "hover:bg-indigo-50 text-slate-700"
+}
+`;
+
+  const filterClearClass = `
+px-4
+py-3
+border-t
+cursor-pointer
+${
+  darkMode
+    ? "border-neutral-700 text-red-400 hover:bg-red-500/10"
+    : "border-slate-100 text-red-500 hover:bg-red-50"
+}
+`;
   ("w-full h-10 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all");
 
   useEffect(() => {
@@ -206,6 +326,25 @@ export default function DefectTable({
   const firstIndex = lastIndex - rowsPerPage;
 
   const currentRows = sortedDefects.slice(firstIndex, lastIndex);
+  const fetchHistory = async (defectId) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `http://localhost:5000/api/history/${defectId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setHistoryLogs(res.data);
+      setShowHistoryModal(true);
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const startRecord = filteredDefects.length === 0 ? 0 : firstIndex + 1;
 
@@ -214,20 +353,19 @@ export default function DefectTable({
   return (
     <div className="px-2 md:px-8 pb-8">
       <div
-        className="
+        className={`
     relative
-    bg-white
+    ${darkMode ? "bg-neutral-950 border-neutral-800" : "bg-white border-slate-200"}
     rounded-[28px]
     border
-    border-slate-200
     overflow-visible
     shadow-sm
-  "
+  `}
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hide-scrollbar">
           <table className="min-w-[1200px] w-full">
             <colgroup>
-              <col style={{ width: "70px" }} /> {/* Actions */}
+              <col style={{ width: "132px" }} /> {/* Actions */}
               <col style={{ width: "80px" }} /> {/* ID */}
               <col style={{ width: "350px" }} /> {/* Title */}
               <col style={{ width: "250px" }} /> {/* Assignee */}
@@ -240,8 +378,18 @@ export default function DefectTable({
               <col style={{ width: "240px" }} /> {/* Owner */}
               <col style={{ width: "150px" }} /> {/* Source */}
             </colgroup>
-            <thead className="sticky top-0 bg-slate-50 z-10">
-              <tr className="h-14 bg-slate-50 border-b border-slate-200">
+            <thead
+              className={`sticky top-0 z-10 ${
+                darkMode ? "bg-black" : "bg-slate-50"
+              }`}
+            >
+              <tr
+                className={`h-14 border-b ${
+                  darkMode
+                    ? "bg-black border-neutral-800"
+                    : "bg-slate-50 border-slate-200"
+                }`}
+              >
                 <th className="w-16">
                   <button
                     onClick={() => {
@@ -285,31 +433,7 @@ export default function DefectTable({
                         onMouseLeave={(e) => {
                           e.target.placeholder = "Search...";
                         }}
-                        className="
-w-full
-h-11
-px-4
-bg-white
-border
-border-slate-200
-rounded-2xl
-text-sm
-font-medium
-text-slate-700
-shadow-sm
-hover:border-indigo-300
-focus:border-indigo-500
-focus:ring-2
-focus:ring-indigo-100
-outline-none
-transition-all
-duration-200
-placeholder:text-slate-400
-truncate
-overflow-hidden
-text-ellipsis
-whitespace-nowrap
-"
+                        className={filterInputClass}
                       />
                     </div>
                   ) : (
@@ -323,27 +447,7 @@ whitespace-nowrap
                       placeholder="Search title"
                       value={titleFilter}
                       onChange={(e) => setTitleFilter(e.target.value)}
-                      className="
-w-full
-h-11
-px-4
-bg-white
-border
-border-slate-200
-rounded-2xl
-text-sm
-font-medium
-text-slate-700
-shadow-sm
-hover:border-indigo-300
-focus:border-indigo-500
-focus:ring-2
-focus:ring-indigo-100
-outline-none
-transition-all
-duration-200
-placeholder:text-slate-400
-"
+                      className={filterInputClass}
                     />
                   ) : (
                     "DEFECT TITLE"
@@ -356,27 +460,7 @@ placeholder:text-slate-400
                       placeholder="Search assignee"
                       value={assigneeInlineFilter}
                       onChange={(e) => setAssigneeInlineFilter(e.target.value)}
-                      className="
-w-full
-h-11
-px-4
-bg-white
-border
-border-slate-200
-rounded-2xl
-text-sm
-font-medium
-text-slate-700
-shadow-sm
-hover:border-indigo-300
-focus:border-indigo-500
-focus:ring-2
-focus:ring-indigo-100
-outline-none
-transition-all
-duration-200
-placeholder:text-slate-400
-"
+                      className={filterInputClass}
                     />
                   ) : (
                     "ASSIGNEE"
@@ -391,7 +475,7 @@ placeholder:text-slate-400
                         onClick={() =>
                           setShowStatusDropdownInline(!showStatusDropdownInline)
                         }
-                        className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
+                        className={filterDropdownButtonClass}
                       >
                         <span className="flex-1 truncate text-left">
                           {statusInlineFilter || "Status"}
@@ -403,7 +487,14 @@ placeholder:text-slate-400
                       </button>
 
                       {showStatusDropdownInline && (
-                        <div className="absolute z-50 mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-visible">
+                        <div
+                          className={`absolute z-50 mt-2 w-full rounded-2xl shadow-xl overflow-visible border
+      ${
+        darkMode
+          ? "bg-neutral-900 border-neutral-700"
+          : "bg-white border-slate-200"
+      }`}
+                        >
                           {statusOptions.map((status) => (
                             <div
                               key={status}
@@ -411,7 +502,12 @@ placeholder:text-slate-400
                                 setStatusInlineFilter(status);
                                 setShowStatusDropdownInline(false);
                               }}
-                              className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                              className={`flex items-center justify-between px-4 py-3 cursor-pointer
+${
+  darkMode
+    ? "hover:bg-neutral-800 text-white"
+    : "hover:bg-indigo-50 text-slate-700"
+}`}
                             >
                               <span>{status}</span>
                               {statusInlineFilter === status && (
@@ -427,7 +523,12 @@ placeholder:text-slate-400
                               setStatusInlineFilter("");
                               setShowStatusDropdownInline(false);
                             }}
-                            className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
+                            className={`px-4 py-3 border-t cursor-pointer
+${
+  darkMode
+    ? "border-neutral-700 text-red-400 hover:bg-red-500/10"
+    : "border-slate-100 text-red-500 hover:bg-red-50"
+}`}
                           >
                             Clear
                           </div>
@@ -447,23 +548,7 @@ placeholder:text-slate-400
                         onClick={() =>
                           setShowStageDropdownInline(!showStageDropdownInline)
                         }
-                        className="
-          w-full
-          h-11
-          px-4
-          bg-white
-          border
-          border-slate-200
-          rounded-2xl
-          text-sm
-          font-medium
-          text-slate-700
-          shadow-sm
-          hover:border-indigo-300
-          flex
-          items-center
-          justify-between
-        "
+                        className={filterDropdownButtonClass}
                       >
                         <span className="flex-1 truncate text-left">
                           {stageInlineFilter || "Stage"}
@@ -475,7 +560,7 @@ placeholder:text-slate-400
                       </button>
 
                       {showStageDropdownInline && (
-                        <div className="absolute z-[9999] mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                        <div className={filterDropdownClass}>
                           {stageOptions.map((stage) => (
                             <div
                               key={stage}
@@ -483,7 +568,7 @@ placeholder:text-slate-400
                                 setStageInlineFilter(stage);
                                 setShowStageDropdownInline(false);
                               }}
-                              className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer transition"
+                              className={filterOptionClass}
                             >
                               <span>{stage}</span>
 
@@ -500,7 +585,7 @@ placeholder:text-slate-400
                               setStageInlineFilter("");
                               setShowStageDropdownInline(false);
                             }}
-                            className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
+                            className={filterClearClass}
                           >
                             Clear
                           </div>
@@ -522,24 +607,7 @@ placeholder:text-slate-400
                             !showEnvironmentDropdownInline,
                           )
                         }
-                        className="
-          w-full
-          h-11
-          px-4
-          bg-white
-          border
-          border-slate-200
-          rounded-2xl
-          text-sm
-          font-medium
-          text-slate-700
-          shadow-sm
-          hover:border-indigo-300
-          flex
-          items-center
-          justify-between
-          overflow-hidden
-        "
+                        className={filterDropdownButtonClass}
                       >
                         <span className="flex-1 truncate text-left">
                           {environmentInlineFilter || "Environment"}
@@ -551,20 +619,7 @@ placeholder:text-slate-400
                       </button>
 
                       {showEnvironmentDropdownInline && (
-                        <div
-                          className="
-            absolute
-            z-50
-            mt-2
-            w-full
-            bg-white
-            border
-            border-slate-200
-            rounded-2xl
-            shadow-xl
-            overflow-hidden
-          "
-                        >
+                        <div className={filterDropdownClass}>
                           {["QA", "DEV", "BCBSKS PROD"].map((env) => (
                             <div
                               key={env}
@@ -572,16 +627,7 @@ placeholder:text-slate-400
                                 setEnvironmentInlineFilter(env);
                                 setShowEnvironmentDropdownInline(false);
                               }}
-                              className="
-                flex
-                items-center
-                justify-between
-                px-4
-                py-3
-                hover:bg-indigo-50
-                cursor-pointer
-                transition
-              "
+                              className={filterOptionClass}
                             >
                               <span>{env}</span>
 
@@ -598,15 +644,7 @@ placeholder:text-slate-400
                               setEnvironmentInlineFilter("");
                               setShowEnvironmentDropdownInline(false);
                             }}
-                            className="
-              px-4
-              py-3
-              border-t
-              border-slate-100
-              text-red-500
-              hover:bg-red-50
-              cursor-pointer
-            "
+                            className={filterClearClass}
                           >
                             Clear
                           </div>
@@ -628,7 +666,7 @@ placeholder:text-slate-400
                             !showSeverityDropdownInline,
                           )
                         }
-                        className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
+                        className={filterDropdownButtonClass}
                       >
                         <span className="flex-1 truncate text-left">
                           {severityInlineFilter || "Severity"}
@@ -640,7 +678,7 @@ placeholder:text-slate-400
                       </button>
 
                       {showSeverityDropdownInline && (
-                        <div className="absolute z-[9999] mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                        <div className={filterDropdownClass}>
                           {severityOptions.map((severity) => (
                             <div
                               key={severity}
@@ -648,7 +686,7 @@ placeholder:text-slate-400
                                 setSeverityInlineFilter(severity);
                                 setShowSeverityDropdownInline(false);
                               }}
-                              className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                              className={filterOptionClass}
                             >
                               <span>{severity}</span>
                               {severityInlineFilter === severity && (
@@ -664,7 +702,7 @@ placeholder:text-slate-400
                               setSeverityInlineFilter("");
                               setShowSeverityDropdownInline(false);
                             }}
-                            className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
+                            className={filterClearClass}
                           >
                             Clear
                           </div>
@@ -684,7 +722,7 @@ placeholder:text-slate-400
                         onClick={() =>
                           setShowTagDropdownInline(!showTagDropdownInline)
                         }
-                        className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
+                        className={filterDropdownButtonClass}
                       >
                         <span className="flex-1 truncate text-left">
                           {tagInlineFilter || "Tags"}
@@ -696,7 +734,7 @@ placeholder:text-slate-400
                       </button>
 
                       {showTagDropdownInline && (
-                        <div className="absolute z-[9999] mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                        <div className={filterDropdownClass}>
                           {tagOptions.map((tag) => (
                             <div
                               key={tag}
@@ -704,7 +742,7 @@ placeholder:text-slate-400
                                 setTagInlineFilter(tag);
                                 setShowTagDropdownInline(false);
                               }}
-                              className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                              className={filterOptionClass}
                             >
                               <span>{tag}</span>
                               {tagInlineFilter === tag && (
@@ -720,18 +758,7 @@ placeholder:text-slate-400
                               setTagInlineFilter("");
                               setShowTagDropdownInline(false);
                             }}
-                            className="
-    px-4
-    py-2
-    border-t
-    border-slate-100
-    text-red-500
-    hover:bg-red-50
-    cursor-pointer
-    text-sm
-    font-medium
-    whitespace-nowrap
-  "
+                            className={filterClearClass}
                           >
                             Clear
                           </div>
@@ -751,27 +778,7 @@ placeholder:text-slate-400
                       onChange={(e) =>
                         setDefectReleaseInlineFilter(e.target.value)
                       }
-                      className="
-w-full
-h-11
-px-4
-bg-white
-border
-border-slate-200
-rounded-2xl
-text-sm
-font-medium
-text-slate-700
-shadow-sm
-hover:border-indigo-300
-focus:border-indigo-500
-focus:ring-2
-focus:ring-indigo-100
-outline-none
-transition-all
-duration-200
-placeholder:text-slate-400
-"
+                      className={filterInputClass}
                     />
                   ) : (
                     "DEFECT RELEASE"
@@ -786,27 +793,7 @@ placeholder:text-slate-400
                       onChange={(e) =>
                         setDefectOwnerInlineFilter(e.target.value)
                       }
-                      className="
-w-full
-h-11
-px-4
-bg-white
-border
-border-slate-200
-rounded-2xl
-text-sm
-font-medium
-text-slate-700
-shadow-sm
-hover:border-indigo-300
-focus:border-indigo-500
-focus:ring-2
-focus:ring-indigo-100
-outline-none
-transition-all
-duration-200
-placeholder:text-slate-400
-"
+                      className={filterInputClass}
                     />
                   ) : (
                     "DEFECT OWNER"
@@ -820,7 +807,7 @@ placeholder:text-slate-400
                         onClick={() =>
                           setShowSourceDropdownInline(!showSourceDropdownInline)
                         }
-                        className="w-full h-11 px-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium text-slate-700 shadow-sm hover:border-indigo-300 flex items-center justify-between"
+                        className={filterDropdownButtonClass}
                       >
                         <span className="flex-1 truncate text-left">
                           {sourceInlineFilter || "Source"}
@@ -832,7 +819,7 @@ placeholder:text-slate-400
                       </button>
 
                       {showSourceDropdownInline && (
-                        <div className="absolute z-[9999] mt-2 min-w-[150px] w-full bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                        <div className={filterDropdownClass}>
                           {sourceOptions.map((source) => (
                             <div
                               key={source}
@@ -840,7 +827,7 @@ placeholder:text-slate-400
                                 setSourceInlineFilter(source);
                                 setShowSourceDropdownInline(false);
                               }}
-                              className="flex items-center justify-between px-4 py-3 hover:bg-indigo-50 cursor-pointer"
+                              className={filterOptionClass}
                             >
                               <span>{source}</span>
                               {sourceInlineFilter === source && (
@@ -856,7 +843,7 @@ placeholder:text-slate-400
                               setSourceInlineFilter("");
                               setShowSourceDropdownInline(false);
                             }}
-                            className="px-4 py-3 border-t border-slate-100 text-red-500 hover:bg-red-50 cursor-pointer"
+                            className={filterClearClass}
                           >
                             Clear
                           </div>
@@ -876,38 +863,36 @@ placeholder:text-slate-400
                   <tr
                     key={item.id}
                     onClick={() => setSelectedDefect(item)}
-                    className="
-
+                    className={`
     h-16
-
     border-b
-
-    border-slate-100
-
-    hover:bg-indigo-50/40
-
+    ${
+      darkMode
+        ? "border-neutral-800 hover:bg-neutral-900 text-neutral-200"
+        : "border-slate-100 hover:bg-indigo-50/40"
+    }
     cursor-pointer
-
     transition-all
-
     duration-200
-
-  "
+`}
                   >
-                    <td>
+                    <td className="px-3">
                       {user?.role === "admin" && (
                         <div
-                          className="
+                          className={`
         flex
         items-center
-        gap-1
-        bg-slate-50
+        gap-1.5
+        ${
+          darkMode
+            ? "bg-black/80 border-neutral-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+            : "bg-white border-slate-200 shadow-sm"
+        }
         border
-        border-slate-100
-        p-1
-        rounded-xl
+        p-1.5
+        rounded-2xl
         w-fit
-      "
+      `}
                         >
                           <button
                             onClick={(e) => {
@@ -917,18 +902,15 @@ placeholder:text-slate-400
 
                               onEdit?.(item);
                             }}
-                            className="
-          w-8
-          h-8
-          rounded-lg
-          hover:bg-white
-          transition
-          flex
-          items-center
-          justify-center
-        "
+                            className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
+                              darkMode
+                                ? "text-neutral-300 hover:bg-blue-500/15 hover:text-blue-300"
+                                : "text-slate-500 hover:bg-blue-50 hover:text-blue-600"
+                            }`}
+                            aria-label="Edit defect"
+                            title="Edit defect"
                           >
-                            <Pencil size={16} strokeWidth={2} />
+                            <Pencil size={15} strokeWidth={2.2} />
                           </button>
 
                           <button
@@ -936,23 +918,31 @@ placeholder:text-slate-400
                               e.stopPropagation();
                               onDelete?.(item.id);
                             }}
-                            className="
-          w-8
-          h-8
-          rounded-lg
-          text-slate-400
-          hover:text-red-600
-          hover:bg-red-50
-          transition-all
-          duration-200
-          flex
-          items-center
-          justify-center
-          hover:scale-110
-        "
-                            title="Delete Defect"
+                            className={`flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 ${
+                              darkMode
+                                ? "text-neutral-400 hover:bg-rose-500/15 hover:text-rose-300"
+                                : "text-slate-500 hover:bg-rose-50 hover:text-rose-600"
+                            }`}
+                            aria-label="Delete defect"
+                            title="Delete defect"
                           >
-                            <Trash2 size={15} />
+                            <Trash2 size={15} strokeWidth={2.2} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fetchHistory(item.id);
+                            }}
+                            className={`flex h-8 w-8 items-center justify-center rounded-xl text-[0px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 ${
+                              darkMode
+                                ? "text-neutral-400 hover:bg-amber-500/15 hover:text-amber-300"
+                                : "text-slate-500 hover:bg-amber-50 hover:text-amber-600"
+                            }`}
+                            aria-label="View history"
+                            title="View history"
+                          >
+                            <Clock3 size={15} strokeWidth={2.2} />
+                            🕒
                           </button>
                         </div>
                       )}
@@ -960,7 +950,11 @@ placeholder:text-slate-400
 
                     <td className="py-4">{item.id}</td>
 
-                    <td className="font-medium text-slate-800">
+                    <td
+                      className={`font-medium ${
+                        darkMode ? "text-white" : "text-slate-800"
+                      }`}
+                    >
                       <div
                         className="truncate max-w-[250px]"
                         title={item.title}
@@ -972,13 +966,21 @@ placeholder:text-slate-400
                     <td>
                       <div className="flex items-center gap-2">
                         <div
-                          className="
-      w-10 h-10
+                          className={`
+      w-10
+      h-10
       rounded-full
-      bg-gradient-to-r from-indigo-100 to-purple-100
-      flex items-center justify-center
+      flex
+      items-center
+      justify-center
       text-xs
-    "
+      font-semibold
+      ${
+        darkMode
+          ? "bg-indigo-600 text-white"
+          : "bg-gradient-to-r from-indigo-100 to-purple-100 text-slate-700"
+      }
+    `}
                         >
                           {item.assignee
                             .split(" ")
@@ -987,7 +989,9 @@ placeholder:text-slate-400
                         </div>
 
                         <div
-                          className="truncate max-w-[180px]"
+                          className={`truncate max-w-[180px] ${
+                            darkMode ? "text-white" : "text-slate-800"
+                          }`}
                           title={item.assignee}
                         >
                           {item.assignee}
@@ -997,12 +1001,24 @@ placeholder:text-slate-400
 
                     <td>
                       <span
-                        className={
-                          item.status === "Assigned"
-                            ? "bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-medium"
-                            : "bg-red-50 text-red-500 px-3 py-1 rounded-full text-xs font-medium"
-                        }
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border
+      ${
+        item.status === "Assigned"
+          ? darkMode
+            ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+          : darkMode
+            ? "bg-red-500/15 text-red-400 border-red-500/30"
+            : "bg-red-50 text-red-700 border-red-200"
+      }
+    `}
                       >
+                        <span
+                          className={`w-2 h-2 rounded-full
+        ${item.status === "Assigned" ? "bg-emerald-500" : "bg-red-500"}
+      `}
+                        />
+
                         {item.status}
                       </span>
                     </td>
@@ -1020,14 +1036,42 @@ placeholder:text-slate-400
 
                     <td>
                       <span
-                        className={
-                          item.severity === "Crash/Data Loss"
-                            ? "bg-red-50 text-red-500 font-medium px-3 py-2 rounded-full text-sm"
-                            : "bg-slate-100 text-slate-700 font-medium px-3 py-2 rounded-full text-sm"
-                        }
+                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold border
+      ${
+        item.severity === "Major Problem"
+          ? darkMode
+            ? "bg-red-500/15 text-red-400 border-red-500/30"
+            : "bg-red-50 text-red-700 border-red-200"
+          : item.severity === "Minor Problem"
+            ? darkMode
+              ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
+              : "bg-amber-50 text-amber-700 border-amber-200"
+            : item.severity === "Suggestion"
+              ? darkMode
+                ? "bg-blue-500/15 text-blue-400 border-blue-500/30"
+                : "bg-blue-50 text-blue-700 border-blue-200"
+              : darkMode
+                ? "bg-slate-500/15 text-slate-300 border-slate-500/30"
+                : "bg-slate-100 text-slate-700 border-slate-200"
+      }
+    `}
                       >
                         <span
-                          className="inline-block max-w-[130px] truncate align-middle"
+                          className={`w-2 h-2 rounded-full
+        ${
+          item.severity === "Major Problem"
+            ? "bg-red-500"
+            : item.severity === "Minor Problem"
+              ? "bg-amber-500"
+              : item.severity === "Suggestion"
+                ? "bg-blue-500"
+                : "bg-slate-500"
+        }
+      `}
+                        />
+
+                        <span
+                          className="truncate max-w-[120px]"
                           title={item.severity}
                         >
                           {item.severity}
@@ -1043,7 +1087,9 @@ placeholder:text-slate-400
 
                     <td>
                       <div
-                        className="truncate max-w-[200px]"
+                        className={`truncate max-w-[200px] ${
+                          darkMode ? "text-neutral-200" : "text-slate-800"
+                        }`}
                         title={item.defectRelease}
                       >
                         {item.defectRelease}
@@ -1053,13 +1099,21 @@ placeholder:text-slate-400
                     <td>
                       <div className="flex items-center gap-2">
                         <div
-                          className="
-      w-8 h-8
+                          className={`
+      w-8
+      h-8
       rounded-full
-      bg-gradient-to-r from-cyan-100 to-blue-100
-      flex items-center justify-center
-      text-xs font-medium
-    "
+      flex
+      items-center
+      justify-center
+      text-xs
+      font-medium
+      ${
+        darkMode
+          ? "bg-cyan-600 text-white"
+          : "bg-gradient-to-r from-cyan-100 to-blue-100 text-slate-700"
+      }
+    `}
                         >
                           {item.defectOwner
                             .split(" ")
@@ -1069,7 +1123,9 @@ placeholder:text-slate-400
                         </div>
 
                         <div
-                          className="truncate max-w-[180px]"
+                          className={`truncate max-w-[180px] ${
+                            darkMode ? "text-white" : "text-slate-800"
+                          }`}
                           title={item.defectOwner}
                         >
                           {item.defectOwner}
@@ -1109,7 +1165,7 @@ placeholder:text-slate-400
         </div>
 
         <div
-          className="
+          className={`
   flex
   flex-col
   md:flex-row
@@ -1119,8 +1175,8 @@ placeholder:text-slate-400
   p-4
   md:p-6
   border-t
-  border-slate-100
-"
+  ${darkMode ? "border-neutral-800" : "border-slate-100"}
+`}
         >
           {/* Left */}
 
@@ -1153,23 +1209,18 @@ placeholder:text-slate-400
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
-              className="
-
+              className={`
         w-10 h-10
-
         rounded-xl
-
-        border border-slate-200
-
-        bg-white
-
-        hover:bg-slate-50
-
+        border
+        ${
+          darkMode
+            ? "bg-neutral-900 border-neutral-700 text-white hover:bg-neutral-800"
+            : "bg-white border-slate-200 hover:bg-slate-50"
+        }
         disabled:opacity-40
-
         disabled:cursor-not-allowed
-
-      "
+      `}
             >
               ‹
             </button>
@@ -1191,7 +1242,9 @@ placeholder:text-slate-400
           ${
             currentPage === index + 1
               ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-              : "bg-white border-slate-200 hover:bg-slate-50"
+              : darkMode
+                ? "bg-neutral-900 border-neutral-700 text-white hover:bg-neutral-800"
+                : "bg-white border-slate-200 hover:bg-slate-50"
           }
 
         `}
@@ -1203,25 +1256,22 @@ placeholder:text-slate-400
             <button
               disabled={currentPage === totalPages || totalPages === 0}
               onClick={() => setCurrentPage(currentPage + 1)}
-              className="
-
+              className={`
         w-10 h-10
-
         rounded-xl
-
-        border border-slate-200
-
-        bg-white
-
-        hover:bg-slate-50
-
+        border
+        ${
+          darkMode
+            ? "bg-neutral-900 border-neutral-700 text-white hover:bg-neutral-800"
+            : "bg-white border-slate-200 hover:bg-slate-50"
+        }
         disabled:opacity-40
-
         disabled:cursor-not-allowed
-
-      "
+      `}
             >
-              ›
+              <span className={darkMode ? "text-white" : "text-slate-700"}>
+                ›
+              </span>
             </button>
           </div>
 
@@ -1249,22 +1299,24 @@ placeholder:text-slate-400
             <div className="relative">
               <button
                 onClick={() => setShowRowsDropdown(!showRowsDropdown)}
-                className="
+                className={`
     w-[80px]
     h-10
     border
-    border-slate-200
+    ${
+      darkMode
+        ? "bg-neutral-900 border-neutral-700 text-white"
+        : "bg-white border-slate-200"
+    }
     rounded-xl
-    bg-white
     text-sm
     font-medium
-    hover:bg-slate-50
     transition
     flex
     items-center
     justify-between
     px-3
-  "
+  `}
               >
                 <span>{rowsPerPage}</span>
 
@@ -1279,20 +1331,23 @@ placeholder:text-slate-400
 
               {showRowsDropdown && (
                 <div
-                  className="
+                  className={`
         absolute
         bottom-full
         right-0
         mb-2
         w-[90px]
-        bg-white
+        ${
+          darkMode
+            ? "bg-neutral-950 border-neutral-800"
+            : "bg-white border-slate-200"
+        }
         border
-        border-slate-200
         rounded-xl
         shadow-xl
         overflow-hidden
         z-50
-      "
+      `}
                 >
                   {[5, 10, 15, 20].map((n) => (
                     <button
@@ -1322,27 +1377,17 @@ placeholder:text-slate-400
 
         {selectedDefect && (
           <div
-            className="
-
+            className={`
     fixed
-
     top-0
-
     right-0
-
     h-screen
-
     w-full md:w-[400px]
-
-    bg-white
-
+    ${darkMode ? "bg-black text-white" : "bg-white"}
     shadow-2xl
-
     p-6
-
     z-50
-
-    "
+`}
           >
             <h2 className="text-2xl font-bold mb-6">Defect Details</h2>
 
@@ -1393,6 +1438,101 @@ placeholder:text-slate-400
             >
               Close
             </button>
+          </div>
+        )}
+        {showHistoryModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+            <div
+              className={`
+    ${darkMode ? "bg-black text-white" : "bg-white"}
+    w-[700px]
+    max-h-[80vh]
+    overflow-y-auto
+    rounded-3xl
+    p-6
+  `}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">
+                  🕒 Defect History Timeline
+                </h2>
+
+                <button
+                  onClick={() => setShowHistoryModal(false)}
+                  className="text-red-500"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {historyLogs.length === 0 ? (
+                  <p>No history found</p>
+                ) : (
+                  historyLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className={`
+      border
+      rounded-2xl
+      p-4
+      ${
+        darkMode
+          ? "bg-neutral-900 border-neutral-800"
+          : "bg-slate-50 border-slate-200"
+      }
+    `}
+                    >
+                      <p
+                        className={`font-semibold ${
+                          darkMode ? "text-indigo-400" : "text-indigo-600"
+                        }`}
+                      >
+                        {log.changedBy}
+                      </p>
+
+                      <p
+                        className={`text-sm ${
+                          darkMode ? "text-neutral-400" : "text-slate-500"
+                        }`}
+                      >
+                        {new Date(log.createdAt).toLocaleString()}
+                      </p>
+
+                      <div className="mt-2">
+                        <span
+                          className={`font-medium ${
+                            darkMode ? "text-neutral-300" : "text-slate-700"
+                          }`}
+                        >
+                          {log.fieldName}
+                        </span>
+
+                        <div className="mt-1">
+                          <span
+                            className={
+                              darkMode ? "text-red-400" : "text-red-500"
+                            }
+                          >
+                            {log.oldValue}
+                          </span>
+
+                          {" → "}
+
+                          <span
+                            className={
+                              darkMode ? "text-green-400" : "text-green-600"
+                            }
+                          >
+                            {log.newValue}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
